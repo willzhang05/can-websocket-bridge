@@ -1,0 +1,11 @@
+[package]
+name = "can-websocket-bridge"
+version = "0.1.0"
+authors = ["williamzhang"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+websocket = "0.26.2"
+socketcan = "1.7.0"
