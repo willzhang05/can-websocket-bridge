@@ -13,3 +13,8 @@ socket.addEventListener("message", function (event) {
 function sendPing() {
     socket.send("Ping!");
 }
+
+function sendCommand(command) {
+    socket.send(JSON.stringify({"command": command}))
+}
+
