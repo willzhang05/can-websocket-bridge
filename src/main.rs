@@ -1,10 +1,10 @@
-
+use std::collections::HashMap;
 
 use futures::{FutureExt, StreamExt};
 use warp::{Filter, filters::ws};
 
 use serde::{Serialize, Deserialize};
-use serde_json::{Result, Value};
+//use serde_json::{Result, Value};
 
 use tokio_socketcan::{CANSocket, CANFrame};
 use tokio::sync::mpsc;
@@ -17,15 +17,19 @@ pub struct CANMessage {
     data: Vec<u8>,
 }
 
-fn parse_command(msg: &str) -> Result<()> {
-    let v: Value = serde_json::from_str(msg)?;
-    println!("Command {}", v["command"]);
-    match v["command"] {
-        //"connect" => connect_can_bus(),
-        //"disconnect" => disconnect_can_bus(),
-        _ => eprintln!("Unknown command {}", v["command"]),
+fn parse_command(msg: &str) -> serde_json::Value {
+    let v: HashMap<String, serde_json::Value> = serde_json::from_str(msg).unwrap();
+    if v.contains_key("command") {
+        match v["command"] {
+            _ => {
+                    eprintln!("Received command {}", v["command"]);
+                    v["command"].clone()
+                },
+            //_ => eprintln!("Unknown command {}", v["command"]),
+        }
+    } else {
+        serde_json::json!(null)
     }
-    Ok(())
 }
 
 
@@ -35,12 +39,10 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
 
     tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
-        eprintln!("sending thing {:?}", result);
         if let Err(e) = result {
             eprintln!("websocket error: {:?}", e);
         }
     }));
-            //send(serde_json::to_string(&frame).unwrap());
 
     tokio::spawn(async move {
          while let Some(result) = ws_rx.next().await {
@@ -51,7 +53,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
                     break;
                 },
             };
-            parse_command(msg.to_str().unwrap());
+            let parse_result = parse_command(msg.to_str().unwrap());
+            println!("Command {:?}", parse_result);
+
         }
     });
 
@@ -67,7 +71,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
         eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
         //eprintln!("ws_message: {:?}", ws_message);
-        to_ws_tx.send(Ok(ws_message));
+        to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
+        //eprintln!("send_result: {:?}", send_result);
+        
     }
 
 }
@@ -86,5 +92,5 @@ async fn main() {
                 },
             );
     
-    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
