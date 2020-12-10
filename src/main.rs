@@ -48,15 +48,13 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let (ws_tx, mut ws_rx) = ws.split();
     let (to_ws_tx, mut to_ws_rx) = mpsc::unbounded_channel();
 
-    tokio::spawn(async move {
-            
-            to_ws_rx.forward(ws_tx).map(|result| { 
-                if let Err(e) = result {
-                    eprintln!("websocket error: {:?}", e);
-                }
-            })
+    tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
+        eprintln!("sending thing {:?}", result);
+        if let Err(e) = result {
+            eprintln!("websocket error: {:?}", e);
+        }
+    }));
             //send(serde_json::to_string(&frame).unwrap());
-    });
 
     tokio::spawn(async move {
          while let Some(result) = ws_rx.next().await {
@@ -80,8 +78,10 @@ async fn handle_websocket(ws: ws::WebSocket) {
             data: frame.data().to_vec(),
         };
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
+        eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
-        to_ws_tx.send(Ok(ws_message)).expect("Error sending on channel.");
+        eprintln!("ws_message: {:?}", ws_message);
+        to_ws_tx.send(Ok(ws_message));
     }
 
     //tokio::spawn(read_ws());
