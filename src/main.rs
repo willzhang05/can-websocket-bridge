@@ -28,25 +28,11 @@ fn parse_command(msg: &str) -> Result<()> {
     Ok(())
 }
 
-/*async fn read_can(tx: futures::stream::SplitSink<ws::WebSocket>) {
-    let mut socket = CANSocket::open("vcan0").unwrap();
-    println!("Initialized CAN interface vcan0");
-    while let Some(Ok(frame)) = socket.next().await {
-        tx.send(frame).expect("Error sending on channel.");
-    }
-}*/
 
 async fn handle_websocket(ws: ws::WebSocket) {
 
-    //let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-    //tokio::task::spawn(rx.forward(ws_tx).map(|result| {
-     //   if let Err(e) = result {
-     //       eprintln!("websocket error: {:?}", e);
-    //    }
-    //}));
-
     let (ws_tx, mut ws_rx) = ws.split();
-    let (to_ws_tx, mut to_ws_rx) = mpsc::unbounded_channel();
+    let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
 
     tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
         eprintln!("sending thing {:?}", result);
@@ -80,51 +66,11 @@ async fn handle_websocket(ws: ws::WebSocket) {
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
         eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
-        eprintln!("ws_message: {:?}", ws_message);
+        //eprintln!("ws_message: {:?}", ws_message);
         to_ws_tx.send(Ok(ws_message));
     }
 
-    //tokio::spawn(read_ws());
-    //loop {
-        //print_frame(&mut to_ws_rx);
-        /*let frame = to_ws_rx.next();
-        let websocket_msg = ws_rx.next();
-        match websocket_msg {
-            Ok(msg) => msg,
-            Err(e) => {
-                eprintln!("websocket error {}", e);
-                break;
-            },
-        };*/
-        //parse_command(msg.to_str().unwrap());
-        //eprintln!("{}", msg.to_str().unwrap()).expect("Received empty message");
-        /*for x in 0..10 {
-            println!("{}", x);
-        }*/
-
-    //}
 }
-
-/*async fn print_frame(to_ws_rx: &mut mpsc::UnboundedReceiver<CANFrame>) {
-    while let Some(frame) = to_ws_rx.next().await {
-        println!("{:#?}", frame);
-    }
-
-}*/
-
-/*async fn read_ws() {//(ws_rx:  &mut futures::stream::SplitStream<ws::WebSocket>) {
-     while let Some(result) = ws_rx.next().await {
-        let msg = match result {
-            Ok(msg) => msg,
-            Err(e) => {
-                eprintln!("websocket error {}", e);
-                break;
-            },
-        };
-        parse_command(msg.to_str().unwrap());
-    };
-    
-}*/
 
 
 #[tokio::main]
