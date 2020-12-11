@@ -12,9 +12,9 @@ use tokio::sync::mpsc;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CANMessage {
-    id: u32,
-    err: u32,
-    data: Vec<u8>,
+    id: String,
+    err: String,
+    data: Vec<String>,
 }
 
 fn parse_command(msg: &str) -> serde_json::Value {
@@ -53,9 +53,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
                     break;
                 },
             };
-            let parse_result = parse_command(msg.to_str().unwrap());
-            println!("Command {:?}", parse_result);
 
+            let parse_result = parse_command(msg.to_str().expect("Failed to convert message to string"));
+            println!("Command {:?}", parse_result);
         }
     });
 
@@ -63,9 +63,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
     println!("Initialized CAN interface vcan0");
     while let Some(Ok(frame)) = socket.next().await {
         let frame_obj = CANMessage {
-            id: frame.id(),
-            err: frame.err(),
-            data: frame.data().to_vec(),
+            id: format!("{:x}", frame.id()),
+            err: format!("{:x}", frame.err()),
+            data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
         };
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
         eprintln!("frame_to_str: {:?}", frame_to_str);

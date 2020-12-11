@@ -7,7 +7,7 @@ var packStats = {}
 
 function updateGUI() {
 	document.getElementById("pack-status").innerHTML = JSON.stringify(packStats);
-	if (table != null) {
+	//if (table != null) {
 		/*var result = [];
 		for(var key in packStats)
 		    var temp = {};
@@ -18,24 +18,31 @@ function updateGUI() {
 		    result.push(temp);
 		console.log(result);*/
 		//table.setData([packStats]);
-	}
+	//}
 }
 
 function parseCANMessage(msg) {
 	var result = JSON.parse(msg);
 	//console.log(result);
-	if (result.id & 0x1) {
-		var msgID = result.id >> 1;
+	id = parseInt(result.id, 16);
+
+	if (id & 0x1) {
+		var msgID = id >> 1;
 		if (msgID == 0) {
-			packStats["SOC"] = result.data[0];
-			packStats["SOH"] = result.data[1];
-			packStats["voltage"] = (result.data[2] << 8) & result.data[3];
-			packStats["current"] = ((result.data[4] ^ 0b10000000) << 8) & result.data[5];
+			var data = [];
+			for (var i = 0; i < result.data.length; i++) {
+				data.push(parseInt(result.data[i], 16));
+			}
+			console.log(data);
+			packStats["SOC"] = data[0];
+			packStats["SOH"] = data[1];
+			packStats["voltage"] = (data[2] << 8) & data[3];
+			packStats["current"] = ((data[4] ^ 0b10000000) << 8) & data[5];
 			if (result.data[4] & 0b10000000) {
 				packStats["current"] = ~packStats["current"] + 1;
 			}
-			packStats["max_temp"] = result.data[6];
-			packStats["avg_temp"] = result.data[7];
+			packStats["max_temp"] = data[6];
+			packStats["avg_temp"] = data[7];
 			//console.log(packStats);
 			updateGUI();
 		}
