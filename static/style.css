@@ -1,0 +1,20 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    cursor: pointer;
+}
+
+#wrapper {
+    padding: 2vw 2vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#controls {
+    width: 100%;
+    padding: 0 0 5vh 0;
+}
+

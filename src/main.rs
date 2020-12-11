@@ -38,12 +38,7 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let (ws_tx, mut ws_rx) = ws.split();
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
 
-    tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
-        if let Err(e) = result {
-            eprintln!("websocket error: {:?}", e);
-        }
-    }));
-
+    // Receive websocket messages
     tokio::spawn(async move {
          while let Some(result) = ws_rx.next().await {
             let msg = match result {
@@ -58,6 +53,14 @@ async fn handle_websocket(ws: ws::WebSocket) {
             println!("Command {:?}", parse_result);
         }
     });
+
+    // Forward message over websocket
+    tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
+        if let Err(e) = result {
+            eprintln!("websocket error: {:?}", e);
+        }
+    }));
+
 
     let mut socket = CANSocket::open("vcan0").unwrap();
     println!("Initialized CAN interface vcan0");

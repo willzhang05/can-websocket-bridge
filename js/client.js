@@ -3,22 +3,23 @@ var socket;
 
 var packStats = {}
 
-//var table = new Tabulator("#pack-status", {});
+$(document).ready(function() {
+	$("#pack-status").DataTable({
+		columns: [
+			 { data: 'SOC' },
+			 { data: 'SOH' },
+			 { data: 'voltage' },
+			 { data: 'current' },
+			 { data: 'max_temp' },
+			 { data: 'avg_temp' }
+		]
+	});
+});
 
 function updateGUI() {
-	document.getElementById("pack-status").innerHTML = JSON.stringify(packStats);
-	//if (table != null) {
-		/*var result = [];
-		for(var key in packStats)
-		    var temp = {};
-		    if (typeof packStats[key] == 'undefined')
-			temp[key] = 0;
-		    else
-			temp[key] = packStats[key];
-		    result.push(temp);
-		console.log(result);*/
-		//table.setData([packStats]);
-	//}
+	$("#pack-status").DataTable().clear();
+	$("#pack-status").DataTable().rows.add([packStats]).draw();
+	console.log(packStats);
 }
 
 function parseCANMessage(msg) {
@@ -33,7 +34,7 @@ function parseCANMessage(msg) {
 			for (var i = 0; i < result.data.length; i++) {
 				data.push(parseInt(result.data[i], 16));
 			}
-			console.log(data);
+			//console.log(data);
 			packStats["SOC"] = data[0];
 			packStats["SOH"] = data[1];
 			packStats["voltage"] = (data[2] << 8) & data[3];
