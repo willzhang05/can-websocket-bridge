@@ -35,15 +35,26 @@ function parseCANMessage(msg) {
 				data.push(parseInt(result.data[i], 16));
 			}
 			//console.log(data);
-			packStats["SOC"] = data[0];
-			packStats["SOH"] = data[1];
-			packStats["voltage"] = (data[2] << 8) & data[3];
-			packStats["current"] = ((data[4] ^ 0b10000000) << 8) & data[5];
-			if (result.data[4] & 0b10000000) {
+			packStats["SOC"] = 0.5 * data[7];
+			packStats["SOH"] = 0.5 * data[6];
+			packStats["voltage"] = 0.01 * ((data[5] << 8) + data[4]);
+			packStats["current"] = ((data[3] ^ 0b10000000) << 8) + data[2];
+			if (data[3] & 0b10000000) {
 				packStats["current"] = ~packStats["current"] + 1;
 			}
-			packStats["max_temp"] = data[6];
-			packStats["avg_temp"] = data[7];
+			packStats["current"] *= 0.01
+
+			if (data[1] & 0b10000000) {
+				packStats["max_temp"] = ~data[1] + 1;
+			} else {
+				packStats["max_temp"] = data[1];
+			}
+
+			if (data[0] & 0b10000000) {
+				packStats["avg_temp"] = ~data[0] + 1;
+			} else {
+				packStats["avg_temp"] = data[0];
+			}
 			//console.log(packStats);
 			updateGUI();
 		}
