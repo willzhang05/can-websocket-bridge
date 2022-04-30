@@ -7,6 +7,7 @@ use serde::{Serialize, Deserialize};
 //use serde_json::{Result, Value};
 
 use tokio_socketcan::{CANSocket, CANFrame};
+use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio::sync::mpsc;
 
 
@@ -37,6 +38,7 @@ async fn handle_websocket(ws: ws::WebSocket) {
 
     let (ws_tx, mut ws_rx) = ws.split();
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
+    let to_ws_rx = UnboundedReceiverStream::new(to_ws_rx);
 
     // Receive websocket messages
     tokio::spawn(async move {
