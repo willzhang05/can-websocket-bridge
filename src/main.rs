@@ -1,3 +1,5 @@
+use std::env;
+use std::process;
 use std::collections::HashMap;
 
 use futures::{FutureExt, StreamExt};
@@ -34,7 +36,7 @@ fn parse_command(msg: &str) -> serde_json::Value {
 }
 
 
-async fn handle_websocket(ws: ws::WebSocket) {
+async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
 
     let (ws_tx, mut ws_rx) = ws.split();
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
@@ -64,8 +66,8 @@ async fn handle_websocket(ws: ws::WebSocket) {
     }));
 
 
-    let mut socket = CANSocket::open("vcan0").unwrap();
-    println!("Initialized CAN interface vcan0");
+    let mut socket = CANSocket::open(iface).unwrap();
+    println!("Initialized CAN interface {}", iface);
     while let Some(Ok(frame)) = socket.next().await {
         let frame_obj = CANMessage {
             id: format!("0x{:x}", frame.id()),
@@ -87,14 +89,20 @@ async fn handle_websocket(ws: ws::WebSocket) {
 
 #[tokio::main]
 async fn main() {
-    pretty_env_logger::init();
+    let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
+    if args.len() <= 1 {
+        eprintln!("Not enough arguments");
+        process::exit(1);
+    }
+    //pretty_env_logger::init();
     //let (to_can_bus_tx, to_can_bus_rx) = tokio::sync::mpsc::unbounded_channel();
 
     let routes = warp::path("test")
             .and(warp::ws())
             .map(
                 move |ws: warp::ws::Ws| {
-                    ws.on_upgrade(|websocket| handle_websocket(websocket))
+                    ws.on_upgrade(|websocket| handle_websocket(websocket, "can0"))
                 },
             );
     
