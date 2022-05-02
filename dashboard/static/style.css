@@ -19,3 +19,8 @@ button {
     padding: 0 0 5vh 0;
 }
 
+#webcam {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

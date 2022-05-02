@@ -1,7 +1,7 @@
 var url = "ws://" + window.location.hostname + ":8080/test";
 var socket;
 var gauge = new RadialGauge({
-        renderTo: document.getElementById("demo"),
+        renderTo: document.getElementById("gauges"),
         width: 300,
         height: 300,
         units: "MPH",
@@ -31,7 +31,7 @@ var gauge = new RadialGauge({
         colorUnits: "#ccc",
         colorNumbers: "#eee",
         colorPlate: "#222",
-    colorBorderOuter: "#333",
+        colorBorderOuter: "#333",
         colorBorderOuterEnd: "#111",
         colorBorderMiddle: "#222",
         colorBorderMiddleEnd: "#111",
@@ -55,6 +55,32 @@ function hex2bin(hex){
     return (parseInt(hex, 16).toString(2)).padStart(8, '0');
 }
 
+function setWebcam(reverseEnable) {
+    if (reverseEnable == 1) {
+        video = document.getElementById("webcam");
+        console.log(video.getAttribute("hidden"));
+        if (video.getAttribute("hidden") != null) {
+            console.log("enabling webcam");
+            video.removeAttribute("hidden");
+            var navigator = window.navigator;
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (err0r) {
+                    console.log("Something went wrong!");
+                });
+            }
+        }
+    } else {
+        console.log("disabling webcam");
+        if (video.getAttribute("hidden") == null) {
+            video.setAttribute("hidden", "true");
+        }
+    }
+}
+
 function parseCANMessage(msg) {
     var result = JSON.parse(msg);
     //console.log(result);
@@ -67,10 +93,12 @@ function parseCANMessage(msg) {
     var messageType = id & 0xf00;
     //console.log("Message Type: ", messageType);
     if (id == 0x201) {
-        var throttle = result.data >> 24;
-        var regen = (result.data << 8) >> 16;
-        var forwardEnable = (result.data << 16) >> 15;
-        var reverseEnable = (result.data << 17) >> 14;
+        console.log(result.data)
+        var throttle = result.data >> 23;
+        var regen = (result.data >> 11) & 0xff;
+        var forwardEnable = (result.data >> 10) & 0x1;
+        var reverseEnable = (result.data >> 9) & 0x1;
+    	setWebcam(reverseEnable);
         console.log(throttle, regen, forwardEnable, reverseEnable);
     } else if (id == 0x325) {
         console.log(result.data);
