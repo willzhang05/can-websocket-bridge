@@ -54,7 +54,7 @@ function updateGUI() {
 function parseCANMessage(msg) {
     var result = JSON.parse(msg);
     //console.log(result);
-
+    // wheel diameter: 460-470mm = ~18.3 inches
     id = parseInt(result.id, 16);
     var nodeID = id & 0xf;
     //console.log("Node ID: ", nodeID);
@@ -63,19 +63,18 @@ function parseCANMessage(msg) {
     var messageType = id & 0xf00;
     //console.log("Message Type: ", messageType);
     if (id == 0x201) {
-	var throttle = result.data >> 20;
-	var regen = (result.data << 8) >> 12;
-	var forwardEnable = (result.data << 16) >> 11;
-	var reverseEnable = (result.data << 17) >> 10;
+	var throttle = result.data >> 24;
+	var regen = (result.data << 8) >> 16;
+	var forwardEnable = (result.data << 16) >> 15;
+	var reverseEnable = (result.data << 17) >> 14;
 	console.log(throttle, regen, forwardEnable, reverseEnable);
-
     } else if (id == 0x325) {
-	var temp = result.data << 20;
-	var motorCurrent = temp >> 34;
-	temp <<= 10;
-	var motorTemp = temp >> 29;
-
-	var motorRPM = temp >> 17;
+	var batteryVoltage = result.data >> 54;
+	var batteryCurrent = (result.data << 10) >> 45;
+	var batteryCurrentDir = (result.data << 19) >> 44;
+	var motorCurrent = (result.data << 20) >> 34;
+	var motorTemp = (result.data << 30) >> 29;
+	var motorRPM = (result.data << 35) >> 17;
 	console.log(motorCurrent, motorTemp, motorRPM);
     }
     updateGUI();
