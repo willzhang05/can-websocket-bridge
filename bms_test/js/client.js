@@ -1,4 +1,4 @@
-var url = "ws://localhost:8080/test";
+var url = "ws://" + window.location.hostname + ":8080/test";
 var socket;
 
 var packStats = {}
@@ -71,7 +71,7 @@ function connectToServer() {
         });
         // Listen for messages
         socket.addEventListener("message", function (event) {
-           //console.log("Message from server", event.data);
+           console.log("Message from server", event.data);
 	   parseCANMessage(event.data);
         });
     } else {

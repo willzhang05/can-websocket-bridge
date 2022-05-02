@@ -69,12 +69,22 @@ async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
     let mut socket = CANSocket::open(iface).unwrap();
     println!("Initialized CAN interface {}", iface);
     while let Some(Ok(frame)) = socket.next().await {
-        let frame_obj = CANMessage {
-            id: format!("0x{:x}", frame.id()),
-            err: format!("0x{:x}", frame.err()),
-            data: format!("0x{}", hex::encode(frame.data())),
-            //data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
-        };
+        let frame_obj;
+        if frame.is_error() {
+            frame_obj = CANMessage {
+                id: format!("0x{:x}", frame.id()),
+                err: format!("0x{:x}", frame.err()),
+                data: format!("0x{}", hex::encode(frame.data())),
+            };
+        } else {
+            frame_obj = CANMessage {
+                id: format!("0x{:x}", frame.id()),
+                err: format!(""),
+                data: format!("0x{}", hex::encode(frame.data())),
+                //data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
+            };
+        }
+
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
         eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
