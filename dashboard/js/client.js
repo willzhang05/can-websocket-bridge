@@ -25,18 +25,18 @@ var gauge = new RadialGauge({
                                 "to": 70,
                                 "color": "rgba(200, 50, 50, .75)"
                     }],
-   	colorMajorTicks: "#ddd",
-    	colorMinorTicks: "#ddd",
-    	colorTitle: "#eee",
-    	colorUnits: "#ccc",
-    	colorNumbers: "#eee",
-    	colorPlate: "#222",
-	colorBorderOuter: "#333",
-    	colorBorderOuterEnd: "#111",
-    	colorBorderMiddle: "#222",
-    	colorBorderMiddleEnd: "#111",
-    	colorBorderInner: "#111",
-    	colorBorderInnerEnd: "#333",
+       colorMajorTicks: "#ddd",
+        colorMinorTicks: "#ddd",
+        colorTitle: "#eee",
+        colorUnits: "#ccc",
+        colorNumbers: "#eee",
+        colorPlate: "#222",
+    colorBorderOuter: "#333",
+        colorBorderOuterEnd: "#111",
+        colorBorderMiddle: "#222",
+        colorBorderMiddleEnd: "#111",
+        colorBorderInner: "#111",
+        colorBorderInnerEnd: "#333",
         borderShadowWidth: 0,
         borders: false,
         needleType: "arrow",
@@ -51,6 +51,10 @@ var gauge = new RadialGauge({
 function updateGUI() {
 }
 
+function hex2bin(hex){
+    return (parseInt(hex, 16).toString(2)).padStart(8, '0');
+}
+
 function parseCANMessage(msg) {
     var result = JSON.parse(msg);
     //console.log(result);
@@ -63,19 +67,22 @@ function parseCANMessage(msg) {
     var messageType = id & 0xf00;
     //console.log("Message Type: ", messageType);
     if (id == 0x201) {
-	var throttle = result.data >> 24;
-	var regen = (result.data << 8) >> 16;
-	var forwardEnable = (result.data << 16) >> 15;
-	var reverseEnable = (result.data << 17) >> 14;
-	console.log(throttle, regen, forwardEnable, reverseEnable);
+        var throttle = result.data >> 24;
+        var regen = (result.data << 8) >> 16;
+        var forwardEnable = (result.data << 16) >> 15;
+        var reverseEnable = (result.data << 17) >> 14;
+        console.log(throttle, regen, forwardEnable, reverseEnable);
     } else if (id == 0x325) {
-	var batteryVoltage = result.data >> 54;
-	var batteryCurrent = (result.data << 10) >> 45;
-	var batteryCurrentDir = (result.data << 19) >> 44;
-	var motorCurrent = (result.data << 20) >> 34;
-	var motorTemp = (result.data << 30) >> 29;
-	var motorRPM = (result.data << 35) >> 17;
-	console.log(motorCurrent, motorTemp, motorRPM);
+        console.log(result.data);
+        console.log(hex2bin(result.data));
+        var batteryVoltage = result.data >> 54;
+        console.log(batteryVoltage);
+        var batteryCurrent = (result.data << 10) >> 45;
+        var batteryCurrentDir = (result.data << 19) >> 44;
+        var motorCurrent = (result.data << 20) >> 34;
+        var motorTemp = (result.data << 30) >> 29;
+        var motorRPM = (result.data << 35) >> 17;
+        //console.log(motorCurrent, motorTemp, motorRPM);
     }
     updateGUI();
 }
@@ -90,7 +97,7 @@ function connectToServer() {
         });
         // Listen for messages
         socket.addEventListener("message", function (event) {
-       	parseCANMessage(event.data);
+           parseCANMessage(event.data);
         });
     } else {
     if (socket.url == url) {
