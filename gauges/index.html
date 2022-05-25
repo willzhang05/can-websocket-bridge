@@ -3,14 +3,16 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>CAN Bridge Test</title>
+    <title>Gauge Display</title>
+    <link href="static/fonts.css" rel="stylesheet">
     <link href="static/style.css" rel="stylesheet">
-    <script
+    <!--<script
       src="//code.jquery.com/jquery-3.5.1.slim.min.js"
       integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
       crossorigin="anonymous"></script>
     <link href="//cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css" rel="stylesheet">
     <script type="text/javascript" src="//cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    -->
 </head>
 
 <body>
@@ -20,8 +22,19 @@
             <button onclick="connectToServer()">Connect</button>
             <button onclick="disconnectFromServer()">Disconnect</button>
         </div>
-        <canvas id="gauges"></canvas>
+        <!--<canvas id="gauges"></canvas>-->
+        <div id="gauges">
+            <div id="speed">0</div>
+            <canvas id="throttle"></canvas>
+        </div>
         <video autoplay="true" id="webcam" hidden="true"></video>
+        <div id="info">
+            <div id="gear">
+                <span>D</span>
+                <span>N</span>
+                <span>R</span>
+            </div>
+        </div>
     </div>
     <script src="js/gauge.min.js"></script>
     <script src="js/client.js"></script>

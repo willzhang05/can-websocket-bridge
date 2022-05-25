@@ -1,5 +1,6 @@
 var url = "ws://" + window.location.hostname + ":8080/ws";
 var socket;
+/*   
 var gauge = new RadialGauge({
         renderTo: document.getElementById("gauges"),
         width: 300,
@@ -23,14 +24,14 @@ var gauge = new RadialGauge({
                     {
                                 "from": 60,
                                 "to": 70,
-                                "color": "rgba(200, 50, 50, .75)"
+                                "color", "rgba(200, 50, 50, .75)"
                     }],
-       colorMajorTicks: "#ddd",
+        colorMajorTicks: "#ddd",
         colorMinorTicks: "#ddd",
         colorTitle: "#eee",
         colorUnits: "#ccc",
         colorNumbers: "#eee",
-        colorPlate: "#222",
+        colorPlate: "#000",
         colorBorderOuter: "#333",
         colorBorderOuterEnd: "#111",
         colorBorderMiddle: "#222",
@@ -39,18 +40,79 @@ var gauge = new RadialGauge({
         colorBorderInnerEnd: "#333",
         borderShadowWidth: 0,
         borders: false,
-        needleType: "arrow",
+        needleType: "line",
         needleWidth: 2,
         needleCircleSize: 7,
-        needleCircleOuter: true,
+        needleCircleOuter: false,
         needleCircleInner: false,
+        needle: false,
         animationDuration: 1500,
-        animationRule: "linear"
+        animationRule: "linear",
+        colorBarProgress: "#ff0000",
+        barProgress: true,
+        barWidth: 5,
+        barStrokeWidth: 5,
+        valueBox: false
+}).draw();*/
+var gauge = new LinearGauge({
+    renderTo: "throttle",
+    width: 500,
+    height: 150,
+    minValue: 0,
+    maxValue: 100,
+    majorTicks: [
+        "0",
+        "20",
+        "40",
+        "60",
+        "80",
+        "100"
+    ],
+    minorTicks: 10,
+    strokeTicks: true,
+    colorPlate: "#000",
+    colorStrokeTicks: "#fff",
+    colorNumbers: "#fff",
+    borderShadowWidth: 0,
+    borders: false,
+    barBeginCircle: false,
+    tickSide: "left",
+    numberSide: "left",
+    needleSide: "left",
+    needleType: "line",
+    needleWidth: 3,
+    colorNeedle: "#222",
+    colorNeedleEnd: "#222",
+    animationDuration: 1500,
+    animationRule: "linear",
+    animationTarget: "plate",
+    barWidth: 5,
+    ticksWidth: 50,
+    ticksWidthMinor: 15
 }).draw();
 
 connectToServer();
 
-function updateGUI() {
+function updateGUI(toUpdate) {
+    if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
+        var gearDisplay = document.getElementById("gear");
+        console.log(gearDisplay.children[0]);
+        if (toUpdate["forwardEnable"] == toUpdate["reverseEnable"]) {
+            gearDisplay.children[0].style.color = "#757575";
+            gearDisplay.children[1].style.color = "#fff";
+            gearDisplay.children[2].style.color = "#757575";
+        } else {
+            if (toUpdate["fowardEnable"] == 1) {
+                gearDisplay.children[0].style.color = "#fff";
+                gearDisplay.children[1].style.color = "#757575";
+                gearDisplay.children[2].style.color = "#757575";
+            } else {
+                gearDisplay.children[0].style.color = "#757575";
+                gearDisplay.children[1].style.color = "#757575";
+                gearDisplay.children[2].style.color = "#fff";
+            }
+        }
+    }
 }
 
 function hex2bin(hex){
@@ -59,12 +121,15 @@ function hex2bin(hex){
 
 function setWebcam(reverseEnable) {
     video = document.getElementById("webcam");
+    gauges = document.getElementById("gauges");
     if (reverseEnable == 1) {
         console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 console.log("enabling webcam");
                 video.removeAttribute("hidden");
+                gauges.style.visibility = "hidden";
+                gauges.style.display = "none";
                 navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function (stream) {
                     video.srcObject = stream;
@@ -75,12 +140,16 @@ function setWebcam(reverseEnable) {
             } else {
                 console.log("Webcam not enabled or detected!");
                 video.setAttribute("hidden", "true");
+                gauges.style.display = "flex";
+                gauges.style.visibility = "visible";
             }
         }
     } else {
         console.log("disabling webcam");
         if (video.getAttribute("hidden") == null) {
             video.setAttribute("hidden", "true");
+            gauges.style.display = "flex";
+            gauges.style.visibility = "visible";
         }
     }
 }
@@ -96,27 +165,28 @@ function parseCANMessage(msg) {
     //console.log("Counter: ", counter);
     var messageType = id & 0xf00;
     //console.log("Message Type: ", messageType);
+    var values = {};
     if (id == 0x201) {
         console.log(result.data)
-        var throttle = result.data >> 23;
-        var regen = (result.data >> 11) & 0xff;
-        var forwardEnable = (result.data >> 10) & 0x1;
-        var reverseEnable = (result.data >> 9) & 0x1;
-    	setWebcam(reverseEnable);
-        console.log(throttle, regen, forwardEnable, reverseEnable);
+        values.throttle = result.data >> 23;
+        values.regen = (result.data >> 11) & 0xff;
+        values.forwardEnable = (result.data >> 10) & 0x1;
+        values.reverseEnable = (result.data >> 9) & 0x1;
+    	setWebcam(values.reverseEnable);
+        console.log(values.throttle, values.regen, values.forwardEnable, values.reverseEnable);
     } else if (id == 0x325) {
         console.log(result.data);
         console.log(hex2bin(result.data));
-        var batteryVoltage = result.data >> 54;
-        console.log(batteryVoltage);
-        var batteryCurrent = (result.data << 10) >> 45;
-        var batteryCurrentDir = (result.data << 19) >> 44;
-        var motorCurrent = (result.data << 20) >> 34;
-        var motorTemp = (result.data << 30) >> 29;
-        var motorRPM = (result.data << 35) >> 17;
+        values.batteryVoltage = result.data >> 54;
+        console.log(values.batteryVoltage);
+        values.batteryCurrent = (result.data << 10) >> 45;
+        values.batteryCurrentDir = (result.data << 19) >> 44;
+        values.motorCurrent = (result.data << 20) >> 34;
+        values.motorTemp = (result.data << 30) >> 29;
+        values.motorRPM = (result.data << 35) >> 17;
         //console.log(motorCurrent, motorTemp, motorRPM);
     }
-    updateGUI();
+    updateGUI(values);
 }
 
 function connectToServer() {
