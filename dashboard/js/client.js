@@ -56,8 +56,8 @@ function hex2bin(hex){
 }
 
 function setWebcam(reverseEnable) {
+    video = document.getElementById("webcam");
     if (reverseEnable == 1) {
-        video = document.getElementById("webcam");
         console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
             console.log("enabling webcam");
