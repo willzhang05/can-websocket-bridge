@@ -48,6 +48,8 @@ var gauge = new RadialGauge({
         animationRule: "linear"
 }).draw();
 
+connectToServer();
+
 function updateGUI() {
 }
 
@@ -60,10 +62,9 @@ function setWebcam(reverseEnable) {
     if (reverseEnable == 1) {
         console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
-            console.log("enabling webcam");
-            video.removeAttribute("hidden");
-            var navigator = window.navigator;
-            if (navigator.mediaDevices.getUserMedia) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                console.log("enabling webcam");
+                video.removeAttribute("hidden");
                 navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function (stream) {
                     video.srcObject = stream;
@@ -71,6 +72,9 @@ function setWebcam(reverseEnable) {
                 .catch(function (err0r) {
                     console.log("Something went wrong!");
                 });
+            } else {
+                console.log("Webcam not enabled or detected!");
+                video.setAttribute("hidden", "true");
             }
         }
     } else {
@@ -128,13 +132,13 @@ function connectToServer() {
            parseCANMessage(event.data);
         });
     } else {
-    if (socket.url == url) {
-        if (socket.readyState == WebSocket.CONNECTING) {
-            console.log("Already connecting!");
-        } else if (socket.readyState == WebSocket.OPEN) {
-            console.log("Already connected!");
+        if (socket.url == url) {
+            if (socket.readyState == WebSocket.CONNECTING) {
+                console.log("Already connecting!");
+            } else if (socket.readyState == WebSocket.OPEN) {
+                console.log("Already connected!");
+            }
         }
-    }
     }
 }
 
