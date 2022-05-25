@@ -96,7 +96,7 @@ connectToServer();
 function updateGUI(toUpdate) {
     if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
         var gearDisplay = document.getElementById("gear");
-        console.log(gearDisplay.children[0]);
+        //console.log(gearDisplay.children[0]);
         if (toUpdate["forwardEnable"] == toUpdate["reverseEnable"]) {
             gearDisplay.children[0].style.color = "#757575";
             gearDisplay.children[1].style.color = "#fff";
@@ -145,7 +145,7 @@ function setWebcam(reverseEnable) {
             }
         }
     } else {
-        console.log("disabling webcam");
+        //console.log("disabling webcam");
         if (video.getAttribute("hidden") == null) {
             video.setAttribute("hidden", "true");
             gauges.style.display = "flex";
@@ -167,13 +167,15 @@ function parseCANMessage(msg) {
     //console.log("Message Type: ", messageType);
     var values = {};
     if (id == 0x201) {
-        console.log(result.data)
-        values.throttle = result.data >> 23;
-        values.regen = (result.data >> 11) & 0xff;
+        //console.log(result.data)
+        values.throttle = result.data >> 24;
+        values.regen = (result.data >> 12) & 0xff;
         values.forwardEnable = (result.data >> 10) & 0x1;
         values.reverseEnable = (result.data >> 9) & 0x1;
     	setWebcam(values.reverseEnable);
         console.log(values.throttle, values.regen, values.forwardEnable, values.reverseEnable);
+    } else if (id == 0x301) {
+        //console.log(result.data);
     } else if (id == 0x325) {
         console.log(result.data);
         console.log(hex2bin(result.data));
