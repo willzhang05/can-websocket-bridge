@@ -81,7 +81,7 @@ var gauge = new LinearGauge({
     needleSide: "left",
     needleType: "line",
     needleWidth: 3,
-    colorNeedle: "#222",
+    colorNeedle: "#ff0000",
     colorNeedleEnd: "#222",
     animationDuration: 1500,
     animationRule: "linear",
@@ -95,9 +95,9 @@ connectToServer();
 
 function updateGUI(toUpdate) {
     if ("throttle" in toUpdate) {
-        gauge.value = toUpdate["throttle"];
-        console.log(gauge.value);
         document.getElementById("speed").innerHTML = toUpdate["throttle"];
+        gauge.value = toUpdate.throttle;
+        console.log(toUpdate);
     }
     if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
         var gearDisplay = document.getElementById("gear");
