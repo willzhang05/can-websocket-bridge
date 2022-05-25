@@ -36,7 +36,7 @@ fn parse_command(msg: &str) -> serde_json::Value {
 }
 
 
-async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
+async fn handle_websocket(ws: ws::WebSocket) {
 
     let (ws_tx, mut ws_rx) = ws.split();
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
@@ -53,8 +53,8 @@ async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
                 },
             };
 
-            let parse_result = parse_command(msg.to_str().expect("Failed to convert message to string"));
-            println!("Command {:?}", parse_result);
+            let _parse_result = parse_command(msg.to_str().expect("Failed to convert message to string"));
+            //println!("Command {:?}", parse_result);
         }
     });
 
@@ -65,7 +65,8 @@ async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
         }
     }));
 
-
+    let args: Vec<String> = env::args().collect();
+    let iface = &args[1];
     let mut socket = CANSocket::open(iface).unwrap();
     println!("Initialized CAN interface {}", iface);
     while let Some(Ok(frame)) = socket.next().await {
@@ -86,33 +87,28 @@ async fn handle_websocket(ws: ws::WebSocket, iface: &str) {
         }
 
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
-        eprintln!("frame_to_str: {:?}", frame_to_str);
+        //eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
         //eprintln!("ws_message: {:?}", ws_message);
         to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
         //eprintln!("send_result: {:?}", send_result);
-        
     }
-
 }
 
 
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
-    if args.len() <= 1 {
+    //pretty_env_logger::init();
+    if env::args().len() <= 1 {
         eprintln!("Not enough arguments");
         process::exit(1);
     }
-    //pretty_env_logger::init();
-    //let (to_can_bus_tx, to_can_bus_rx) = tokio::sync::mpsc::unbounded_channel();
 
-    let routes = warp::path("test")
+    let routes = warp::path("ws")
             .and(warp::ws())
             .map(
                 move |ws: warp::ws::Ws| {
-                    ws.on_upgrade(|websocket| handle_websocket(websocket, "can0"))
+                    ws.on_upgrade(|websocket| handle_websocket(websocket))
                 },
             );
     

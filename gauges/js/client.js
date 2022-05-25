@@ -1,4 +1,4 @@
-var url = "ws://" + window.location.hostname + ":8080/test";
+var url = "ws://" + window.location.hostname + ":8080/ws";
 var socket;
 var gauge = new RadialGauge({
         renderTo: document.getElementById("gauges"),
