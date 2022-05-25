@@ -17,4 +17,6 @@
 * To set up a virtual CAN interface for testing, run `./setup_vcan.sh` as root or `sudo ./setup_vcan.sh`.
 * To generate CAN bus traffic for testing, use the [cangen utility](https://manpages.debian.org/stretch-backports/can-utils/cangen.1.en.html) included in `can-utils`
 * Example command for generating frames with a gap of 500ms, a set ID of 1, and data payload of fixed length 8: `cangen vcan0 -g 500 -I 1 -L 8`
-* The static files can be served through many different means, an easy way to do this is to use `python -m http.server`
+* The static files can be served through many different means
+  * an easy way to do this is to use `python3 -m http.server`
+  * install the Node.js reference http server `npm install -g http-server` and run with `./start_webserver.sh`
