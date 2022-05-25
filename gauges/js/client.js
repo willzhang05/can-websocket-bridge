@@ -94,22 +94,40 @@ var gauge = new LinearGauge({
 connectToServer();
 
 function updateGUI(toUpdate) {
+    if ("throttle" in toUpdate) {
+        gauge.value = toUpdate["throttle"];
+        console.log(gauge.value);
+        document.getElementById("speed").innerHTML = toUpdate["throttle"];
+    }
     if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
         var gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
+        var selectFontSize = "3rem";
+        var unselectFontSize = "2rem";
+        var selectColor = "#fff";
+        var unselectColor = "#757575";
         if (toUpdate["forwardEnable"] == toUpdate["reverseEnable"]) {
-            gearDisplay.children[0].style.color = "#757575";
-            gearDisplay.children[1].style.color = "#fff";
-            gearDisplay.children[2].style.color = "#757575";
+            gearDisplay.children[0].style.fontSize = unselectFontSize;
+            gearDisplay.children[1].style.fontSize = selectFontSize;
+            gearDisplay.children[2].style.fontSize = unselectFontSize;
+            gearDisplay.children[0].style.color = unselectColor;
+            gearDisplay.children[1].style.color = selectColor;
+            gearDisplay.children[2].style.color = unselectColor;
         } else {
-            if (toUpdate["fowardEnable"] == 1) {
-                gearDisplay.children[0].style.color = "#fff";
-                gearDisplay.children[1].style.color = "#757575";
-                gearDisplay.children[2].style.color = "#757575";
+            if (toUpdate["forwardEnable"] == 1) {
+                gearDisplay.children[0].style.fontSize = selectFontSize;
+                gearDisplay.children[1].style.fontSize = unselectFontSize;
+                gearDisplay.children[2].style.fontSize = unselectFontSize;
+                gearDisplay.children[0].style.color = selectColor;
+                gearDisplay.children[1].style.color = unselectColor;
+                gearDisplay.children[2].style.color = unselectColor;
             } else {
-                gearDisplay.children[0].style.color = "#757575";
-                gearDisplay.children[1].style.color = "#757575";
-                gearDisplay.children[2].style.color = "#fff";
+                gearDisplay.children[0].style.fontSize = unselectFontSize;
+                gearDisplay.children[1].style.fontSize = unselectFontSize;
+                gearDisplay.children[2].style.fontSize = selectFontSize;
+                gearDisplay.children[0].style.color = unselectColor;
+                gearDisplay.children[1].style.color = unselectColor;
+                gearDisplay.children[2].style.color = selectColor;
             }
         }
     }
@@ -167,10 +185,10 @@ function parseCANMessage(msg) {
     //console.log("Message Type: ", messageType);
     var values = {};
     if (id == 0x201) {
-        //console.log(result.data)
+        console.log(hex2bin(result.data));
         values.throttle = result.data >> 24;
         values.regen = (result.data >> 12) & 0xff;
-        values.forwardEnable = (result.data >> 10) & 0x1;
+        values.forwardEnable = (result.data >> 8) & 0x1;
         values.reverseEnable = (result.data >> 9) & 0x1;
     	setWebcam(values.reverseEnable);
         console.log(values.throttle, values.regen, values.forwardEnable, values.reverseEnable);

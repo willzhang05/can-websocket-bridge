@@ -20,7 +20,6 @@ button {
 }
 
 #wrapper {
-    padding: 2vw 2vh;
     display: flex;
     flex-direction: column;
 }
