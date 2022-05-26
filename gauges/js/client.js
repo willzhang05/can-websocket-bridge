@@ -1,59 +1,5 @@
 var url = "ws://" + window.location.hostname + ":8080/ws";
 var socket;
-/*
-var gauge = new RadialGauge({
-        renderTo: document.getElementById("throttle"),
-        width: 300,
-        height: 300,
-        units: "MPH",
-        minValue: 0,
-        maxValue: 70,
-        majorTicks: [
-                    "0",
-                    "10",
-                    "20",
-                    "30",
-                    "40",
-                    "50",
-                    "60",
-                    "70",
-                ],
-        minorTicks: 2,
-        strokeTicks: true,
-        highlights: [
-                    {
-                                "from": 60,
-                                "to": 70,
-                                "color": "rgba(200, 50, 50, .75)"
-                    }],
-        colorMajorTicks: "#ddd",
-        colorMinorTicks: "#ddd",
-        colorTitle: "#eee",
-        colorUnits: "#ccc",
-        colorNumbers: "#eee",
-        colorPlate: "#000",
-        colorBorderOuter: "#333",
-        colorBorderOuterEnd: "#111",
-        colorBorderMiddle: "#222",
-        colorBorderMiddleEnd: "#111",
-        colorBorderInner: "#111",
-        colorBorderInnerEnd: "#333",
-        borderShadowWidth: 0,
-        borders: false,
-        needleType: "line",
-        needleWidth: 2,
-        needleCircleSize: 7,
-        needleCircleOuter: false,
-        needleCircleInner: false,
-        needle: false,
-        animationDuration: 1500,
-        animationRule: "linear",
-        colorBarProgress: "#ff0000",
-        barProgress: true,
-        barWidth: 5,
-        barStrokeWidth: 5,
-        valueBox: false
-}).draw();*/
 var gauge = new LinearGauge({
     renderTo: "gauge",
     width: 400,
@@ -81,6 +27,10 @@ var gauge = new LinearGauge({
     borders: false,
     barBeginCircle: false,
     tickSide: "left",
+    needle: false,
+    needleSide: "left",
+    needleType: "line",
+    needleWidth: 3,
     numberSide: "left",
     colorMajorTicks: "#fff",
     colorMinorTicks: "#fff",
@@ -90,7 +40,7 @@ var gauge = new LinearGauge({
     colorPlate: "#000",
     colorNeedle: "#ff0000",
     colorNeedleEnd: "#222",
-    colorBarProgress: "#327ac0",
+    colorBarProgress: "#f44336",
     animationDuration: 1000,
     animationRule: "linear",
     animationTarget: "plate",
@@ -102,18 +52,23 @@ var gauge = new LinearGauge({
 connectToServer();
 
 function updateGUI(toUpdate) {
+    if ("motorRPM" in toUpdate) {
+        // 460-470mm wheel diameter
+        // ~18.3inches
+        let speed = toUpdate.motorRPM * 18.3 * Math.PI * 60.0 / 63360.0;
+        document.getElementById("speed").innerHTML = Math.floor(speed);
+    }
     if ("throttle" in toUpdate) {
-        document.getElementById("speed").innerHTML = toUpdate.throttle;
         //document.getElementById("gauge").setAttribute("data-value", toStrintoUpdate.throttle);
         gauge.update({value: toUpdate.throttle});
     }
     if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
-        var gearDisplay = document.getElementById("gear");
+        let gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
-        var selectFontSize = "3rem";
-        var unselectFontSize = "2rem";
-        var selectColor = "#fff";
-        var unselectColor = "#757575";
+        let selectFontSize = "3rem";
+        let unselectFontSize = "2rem";
+        let selectColor = "#fff";
+        let unselectColor = "#757575";
         if (toUpdate["forwardEnable"] == toUpdate["reverseEnable"]) {
             gearDisplay.children[0].style.fontSize = unselectFontSize;
             gearDisplay.children[1].style.fontSize = selectFontSize;
@@ -181,23 +136,24 @@ function setWebcam(reverseEnable) {
 }
 
 function parseCANMessage(msg) {
-    var result = JSON.parse(msg);
+    let result = JSON.parse(msg);
     //console.log(result);
     // wheel diameter: 460-470mm = ~18.3 inches
     id = parseInt(result.id, 16);
-    var nodeID = id & 0xf;
+    let nodeID = id & 0xf;
     //console.log("Node ID: ", nodeID);
-    var counter = id & 0xf0;
+    let counter = id & 0xf0;
     //console.log("Counter: ", counter);
-    var messageType = id & 0xf00;
+    let messageType = id & 0xf00;
     //console.log("Message Type: ", messageType);
-    var values = {};
+    let values = {};
     if (id == 0x201) {
         values.throttle = result.data >> 24;
         values.regen = (result.data >> 12) & 0xff;
         values.forwardEnable = (result.data >> 2) & 0x1;
         values.reverseEnable = (result.data >> 1) & 0x1;
         setWebcam(values.reverseEnable);
+        values.motorRPM = 0;
     } else if (id == 0x301) {
         //console.log(hex2bin(result.data));
         values.hazards = (result.data >> 7) & 0x1;
@@ -209,11 +165,11 @@ function parseCANMessage(msg) {
     } else if (id == 0x325) {
         values.batteryVoltage = result.data >> 54;
         console.log(values.batteryVoltage);
-        values.batteryCurrent = (result.data << 10) >> 45;
-        values.batteryCurrentDir = (result.data << 19) >> 44;
-        values.motorCurrent = (result.data << 20) >> 34;
-        values.motorTemp = (result.data << 30) >> 29;
-        values.motorRPM = (result.data << 35) >> 17;
+        values.batteryCurrent = (result.data >> 45) & 0x1ff;
+        values.batteryCurrentDir = (result.data >> 44) & 0x1;
+        values.motorCurrent = (result.data >> 34) & 0x3ff;
+        values.motorTemp = (result.data >> 29) & 0x1f;
+        values.motorRPM = (result.data >> 17) & 0xfff;
         //console.log(motorCurrent, motorTemp, motorRPM);
     }
     updateGUI(values);
