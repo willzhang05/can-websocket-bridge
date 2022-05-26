@@ -1,8 +1,8 @@
 var url = "ws://" + window.location.hostname + ":8080/ws";
 var socket;
-/*   
+/*
 var gauge = new RadialGauge({
-        renderTo: document.getElementById("gauges"),
+        renderTo: document.getElementById("throttle"),
         width: 300,
         height: 300,
         units: "MPH",
@@ -24,7 +24,7 @@ var gauge = new RadialGauge({
                     {
                                 "from": 60,
                                 "to": 70,
-                                "color", "rgba(200, 50, 50, .75)"
+                                "color": "rgba(200, 50, 50, .75)"
                     }],
         colorMajorTicks: "#ddd",
         colorMinorTicks: "#ddd",
@@ -55,39 +55,47 @@ var gauge = new RadialGauge({
         valueBox: false
 }).draw();*/
 var gauge = new LinearGauge({
-    renderTo: "throttle",
-    width: 500,
+    renderTo: "gauge",
+    width: 400,
     height: 150,
     minValue: 0,
     maxValue: 100,
+    highlights: [
+        {
+            "from": 0,
+            "to": 100,
+            "color": "rgba(0, 0, 0, 0)"
+        }
+    ],
     majorTicks: [
         "0",
         "20",
         "40",
         "60",
         "80",
-        "100"
+        "100",
     ],
-    minorTicks: 10,
+    minorTicks: 0,
     strokeTicks: true,
-    colorPlate: "#000",
-    colorStrokeTicks: "#fff",
-    colorNumbers: "#fff",
     borderShadowWidth: 0,
     borders: false,
     barBeginCircle: false,
     tickSide: "left",
     numberSide: "left",
-    needleSide: "left",
-    needleType: "line",
-    needleWidth: 3,
+    colorMajorTicks: "#fff",
+    colorMinorTicks: "#fff",
+    colorTitle: "#eee",
+    colorUnits: "#ccc",
+    colorNumbers: "#eee",
+    colorPlate: "#000",
     colorNeedle: "#ff0000",
     colorNeedleEnd: "#222",
-    animationDuration: 1500,
+    colorBarProgress: "#327ac0",
+    animationDuration: 1000,
     animationRule: "linear",
     animationTarget: "plate",
     barWidth: 5,
-    ticksWidth: 50,
+    ticksWidth: 10,
     ticksWidthMinor: 15
 }).draw();
 
@@ -95,9 +103,9 @@ connectToServer();
 
 function updateGUI(toUpdate) {
     if ("throttle" in toUpdate) {
-        document.getElementById("speed").innerHTML = toUpdate["throttle"];
-        gauge.value = toUpdate.throttle;
-        console.log(toUpdate);
+        document.getElementById("speed").innerHTML = toUpdate.throttle;
+        //document.getElementById("gauge").setAttribute("data-value", toStrintoUpdate.throttle);
+        gauge.update({value: toUpdate.throttle});
     }
     if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
         var gearDisplay = document.getElementById("gear");
@@ -114,7 +122,7 @@ function updateGUI(toUpdate) {
             gearDisplay.children[1].style.color = selectColor;
             gearDisplay.children[2].style.color = unselectColor;
         } else {
-            if (toUpdate["forwardEnable"] == 1) {
+            if (toUpdate["forwardEnable"] > 0) {
                 gearDisplay.children[0].style.fontSize = selectFontSize;
                 gearDisplay.children[1].style.fontSize = unselectFontSize;
                 gearDisplay.children[2].style.fontSize = unselectFontSize;
@@ -141,13 +149,10 @@ function setWebcam(reverseEnable) {
     video = document.getElementById("webcam");
     gauges = document.getElementById("gauges");
     if (reverseEnable == 1) {
-        console.log(video.getAttribute("hidden"));
+        //console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 console.log("enabling webcam");
-                video.removeAttribute("hidden");
-                gauges.style.visibility = "hidden";
-                gauges.style.display = "none";
                 navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function (stream) {
                     video.srcObject = stream;
@@ -155,6 +160,9 @@ function setWebcam(reverseEnable) {
                 .catch(function (err0r) {
                     console.log("Something went wrong!");
                 });
+                gauges.style.visibility = "hidden";
+                gauges.style.display = "none";
+                video.removeAttribute("hidden");
             } else {
                 console.log("Webcam not enabled or detected!");
                 video.setAttribute("hidden", "true");
@@ -185,18 +193,20 @@ function parseCANMessage(msg) {
     //console.log("Message Type: ", messageType);
     var values = {};
     if (id == 0x201) {
-        console.log(hex2bin(result.data));
         values.throttle = result.data >> 24;
         values.regen = (result.data >> 12) & 0xff;
-        values.forwardEnable = (result.data >> 8) & 0x1;
-        values.reverseEnable = (result.data >> 9) & 0x1;
-    	setWebcam(values.reverseEnable);
-        console.log(values.throttle, values.regen, values.forwardEnable, values.reverseEnable);
+        values.forwardEnable = (result.data >> 2) & 0x1;
+        values.reverseEnable = (result.data >> 1) & 0x1;
+        setWebcam(values.reverseEnable);
     } else if (id == 0x301) {
-        //console.log(result.data);
+        //console.log(hex2bin(result.data));
+        values.hazards = (result.data >> 7) & 0x1;
+        values.brakelights = (result.data >> 6) & 0x1;
+        values.headlights = (result.data >> 5) & 0x1;
+        values.left_turn_signal = (result.data >> 4) & 0x1;
+        values.right_turn_signal = (result.data >> 3) & 0x1;
+        //console.log(values);
     } else if (id == 0x325) {
-        console.log(result.data);
-        console.log(hex2bin(result.data));
         values.batteryVoltage = result.data >> 54;
         console.log(values.batteryVoltage);
         values.batteryCurrent = (result.data << 10) >> 45;
