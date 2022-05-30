@@ -1,6 +1,3 @@
-extern crate canparse;
-use canparse::pgn::{PgnLibrary, SpnDefinition, ParseMessage};
-
 use std::env;
 use std::process;
 use std::collections::HashMap;
@@ -72,12 +69,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let iface = &args[1];
     let mut socket = CANSocket::open(iface).unwrap();
     println!("Initialized CAN interface {}", iface);
-    let rivanna_lib = PgnLibrary::from_dbc_file("~/CAN-messages/Rivanna2.dbc").unwrap();
-    let motor_lib = PgnLibrary::from_dbc_file("~/CAN-messages/MotorController.dbc").unwrap();
 
     while let Some(Ok(frame)) = socket.next().await {
-        //let frame_obj;
-        /*
+        let frame_obj;
         if frame.is_error() {
             frame_obj = CANMessage {
                 id: format!("0x{:x}", frame.id()),
@@ -93,15 +87,12 @@ async fn handle_websocket(ws: ws::WebSocket) {
             };
         }
 
+        let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
+        //eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
         //eprintln!("ws_message: {:?}", ws_message);
         to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
         //eprintln!("send_result: {:?}", send_result);
-        */
-        let frame_def: &PgnDefinition = rivanna_lib.get_pgn(frame.id()).unwrap();
-        let frame_obj: f32 = frame_def.parse_message(frame.data()).unwrap();
-        let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
-        eprintln!("frame_to_str: {:?}", frame_to_str);
     }
 }
 
