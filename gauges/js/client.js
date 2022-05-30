@@ -100,6 +100,7 @@ function hex2bin(hex){
     return (parseInt(hex, 16).toString(2)).padStart(8, '0');
 }
 
+
 function setWebcam(reverseEnable) {
     video = document.getElementById("webcam");
     gauges = document.getElementById("gauges");
@@ -148,12 +149,27 @@ function parseCANMessage(msg) {
     //console.log("Message Type: ", messageType);
     let values = {};
     if (id == 0x201) {
-        values.throttle = result.data >> 24;
-        values.regen = (result.data >> 12) & 0xff;
-        values.forwardEnable = (result.data >> 2) & 0x1;
-        values.reverseEnable = (result.data >> 1) & 0x1;
+        //console.log(hex2bin(result.data));
+        //console.log(result.data);
+        var throttle = result.data >>> 23;
+        if (throttle > 256) {
+            throttle = 256;
+        }
+        values.throttle = Math.floor(100 * throttle / 256);
+        //throttle = Math.floor(values.throttle * 100 / 256);
+        //console.log(hex2bin(result.data));
+        var regen = (result.data >>> 14) & 0x1ff;
+        if (regen > 256) {
+            regen = 256;
+        }
+        values.regen = Math.floor(100 * regen / 256);;
+        values.cruiseSpeed = (result.data >>> 6) & 0xff;
+        values.cruiseEnable = (result.data >>> 5) & 0x1;
+        values.forwardEnable = (result.data >>> 4) & 0x1;
+        values.reverseEnable = (result.data >>> 3) & 0x1;
+        values.motorOn = (result.data >>> 2) & 0x1;
         setWebcam(values.reverseEnable);
-        values.motorRPM = 0;
+        console.log(values);
     } else if (id == 0x301) {
         //console.log(hex2bin(result.data));
         values.hazards = (result.data >> 7) & 0x1;
@@ -163,14 +179,15 @@ function parseCANMessage(msg) {
         values.right_turn_signal = (result.data >> 3) & 0x1;
         //console.log(values);
     } else if (id == 0x325) {
+        console.log(hex2bin(result.data));
         values.batteryVoltage = result.data >> 54;
-        console.log(values.batteryVoltage);
+        //console.log(values.batteryVoltage);
         values.batteryCurrent = (result.data >> 45) & 0x1ff;
         values.batteryCurrentDir = (result.data >> 44) & 0x1;
         values.motorCurrent = (result.data >> 34) & 0x3ff;
         values.motorTemp = (result.data >> 29) & 0x1f;
         values.motorRPM = (result.data >> 17) & 0xfff;
-        //console.log(motorCurrent, motorTemp, motorRPM);
+        console.log(values);
     }
     updateGUI(values);
 }
