@@ -169,25 +169,22 @@ function parseCANMessage(msg) {
         values.reverseEnable = (result.data >>> 3) & 0x1;
         values.motorOn = (result.data >>> 2) & 0x1;
         setWebcam(values.reverseEnable);
-        console.log(values);
     } else if (id == 0x301) {
         //console.log(hex2bin(result.data));
-        values.hazards = (result.data >> 7) & 0x1;
-        values.brakelights = (result.data >> 6) & 0x1;
-        values.headlights = (result.data >> 5) & 0x1;
-        values.left_turn_signal = (result.data >> 4) & 0x1;
-        values.right_turn_signal = (result.data >> 3) & 0x1;
+        values.hazards = (result.data >>> 7) & 0x1;
+        values.brakelights = (result.data >>> 6) & 0x1;
+        values.headlights = (result.data >>> 5) & 0x1;
+        values.left_turn_signal = (result.data >>> 4) & 0x1;
+        values.right_turn_signal = (result.data >>> 3) & 0x1;
         //console.log(values);
     } else if (id == 0x325) {
-        console.log(hex2bin(result.data));
-        values.batteryVoltage = result.data >> 54;
+        values.batteryVoltage = result.data >>> 54;
         //console.log(values.batteryVoltage);
-        values.batteryCurrent = (result.data >> 45) & 0x1ff;
-        values.batteryCurrentDir = (result.data >> 44) & 0x1;
-        values.motorCurrent = (result.data >> 34) & 0x3ff;
-        values.motorTemp = (result.data >> 29) & 0x1f;
-        values.motorRPM = (result.data >> 17) & 0xfff;
-        console.log(values);
+        values.batteryCurrent = (result.data >>> 45) & 0x1ff;
+        values.batteryCurrentDir = (result.data >>> 44) & 0x1;
+        values.motorCurrent = (result.data >>> 34) & 0x3ff;
+        values.motorTemp = (result.data >>> 29) & 0x1f;
+        values.motorRPM = (result.data >>> 17) & 0xfff;
     }
     updateGUI(values);
 }
