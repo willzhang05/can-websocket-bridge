@@ -168,7 +168,7 @@ function parseCANMessage(msg) {
         values.forwardEnable = (result.data >>> 4) & 0x1;
         values.reverseEnable = (result.data >>> 3) & 0x1;
         values.motorOn = (result.data >>> 2) & 0x1;
-        setWebcam(values.reverseEnable);
+        //setWebcam(values.reverseEnable);
     } else if (id == 0x301) {
         //console.log(hex2bin(result.data));
         values.hazards = (result.data >>> 7) & 0x1;
