@@ -103,12 +103,14 @@ async fn handle_websocket(ws: ws::WebSocket) {
                 let mut decoded_test: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
                 let _unpack = motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded_test), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
 
-                println!("Test {:?}", decoded_test.fet_temperature);
+                //println!("Test {:?}", decoded_test.fet_temperature);
+                let decoded_test_to_str = serde_json::to_string(&decoded_test).unwrap();
+                println!("Test: {:?}", decoded_test_to_str);
             }
         }
         
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
-        eprintln!("frame_to_str: {:?}", frame_to_str);
+        //eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
         //eprintln!("ws_message: {:?}", ws_message);
         to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");

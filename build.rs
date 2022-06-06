@@ -11,7 +11,7 @@ struct CustomCallbacks;
 
 impl ParseCallbacks for CustomCallbacks {
     fn add_derives(&self, _name: &str) -> Vec<String> {
-        vec!["Deserialize".into()]
+        vec!["Serialize".into(), "Deserialize".into()]
     }
 }
 
