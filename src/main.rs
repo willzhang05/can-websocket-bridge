@@ -5,7 +5,9 @@
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::env;
+use std::ptr;
 use std::process;
+use std::mem::MaybeUninit;
 use std::collections::HashMap;
 
 use futures::{FutureExt, StreamExt};
@@ -93,12 +95,20 @@ async fn handle_websocket(ws: ws::WebSocket) {
             };
         }
         if frame.id() == 0x325 {
-            let decoded_test: motor_controller_motor_controller_power_status_t = bincode::deserialize(frame.data()).unwrap();
-            println!("Test {:?}", decoded_test.battery_voltage);
+            let data = frame.data();
+            //pub fn motor_controller_motor_controller_power_status_unpack(dst_p: *mut motor_controller_motor_controller_power_status_t, src_p: *const u8, size: size_t)
+
+            //let decoded_test: motor_controller_motor_controller_power_status_t = bincode::deserialize(frame.data()).unwrap();
+            unsafe {
+                let mut decoded_test: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
+                let _unpack = motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded_test), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
+
+                println!("Test {:?}", decoded_test.fet_temperature);
+            }
         }
         
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
-        //eprintln!("frame_to_str: {:?}", frame_to_str);
+        eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
         //eprintln!("ws_message: {:?}", ws_message);
         to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
