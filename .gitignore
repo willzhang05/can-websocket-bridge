@@ -11,6 +11,7 @@ Cargo.lock
 
 *.pem
 *.a
+*.o
 
 # Added by cargo
 
