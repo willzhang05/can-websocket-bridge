@@ -6,6 +6,15 @@ use std::path::PathBuf;
 
 use bindgen::{CargoCallbacks, callbacks::{self, ParseCallbacks}};
 
+#[derive(Debug)]
+struct CustomCallbacks;
+
+impl ParseCallbacks for CustomCallbacks {
+    fn add_derives(&self, _name: &str) -> Vec<String> {
+        vec!["Deserialize".into()]
+    }
+}
+
 fn main() {
     println!("hi");
     cc::Build::new()
@@ -36,12 +45,12 @@ fn main() {
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(CargoCallbacks))
+        .parse_callbacks(Box::new(CustomCallbacks))
         // Finish the builder and generate the bindings.
         .generate()
         // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");
 
-    
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
