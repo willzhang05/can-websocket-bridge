@@ -1,3 +1,9 @@
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
 use std::env;
 use std::process;
 use std::collections::HashMap;
@@ -86,7 +92,11 @@ async fn handle_websocket(ws: ws::WebSocket) {
                 //data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
             };
         }
-
+        if frame.id() == 0x325 {
+            let decoded_test: motor_controller_motor_controller_power_status_t = bincode::deserialize(frame.data()).unwrap();
+            println!("Test {:?}", decoded_test.battery_voltage);
+        }
+        
         let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
         //eprintln!("frame_to_str: {:?}", frame_to_str);
         let ws_message = ws::Message::text(frame_to_str);
