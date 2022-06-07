@@ -4,7 +4,7 @@ extern crate bindgen;
 use std::env;
 use std::path::PathBuf;
 
-use bindgen::{CargoCallbacks, callbacks::{self, ParseCallbacks}};
+use bindgen::{CargoCallbacks, callbacks::ParseCallbacks};
 
 #[derive(Debug)]
 struct CustomCallbacks;

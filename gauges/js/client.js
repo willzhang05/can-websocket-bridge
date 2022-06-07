@@ -146,6 +146,8 @@ function parseCANMessage(msg) {
     let counter = id & 0xf0;
     //console.log("Counter: ", counter);
     let messageType = id & 0xf00;
+    let data = BigInt(result.data);
+    //let data = BigInt.asUintN(64, result.data);
     //console.log("Message Type: ", messageType);
     let values = {};
     if (id == 0x201) {
@@ -178,13 +180,17 @@ function parseCANMessage(msg) {
         values.right_turn_signal = (result.data >>> 3) & 0x1;
         //console.log(values);
     } else if (id == 0x325) {
-        values.batteryVoltage = result.data >>> 54;
+        console.log(data.toString('2'));
+        //values.batteryVoltage = Number(data & 0xFD00000000000000n);
         //console.log(values.batteryVoltage);
-        values.batteryCurrent = (result.data >>> 45) & 0x1ff;
-        values.batteryCurrentDir = (result.data >>> 44) & 0x1;
-        values.motorCurrent = (result.data >>> 34) & 0x3ff;
-        values.motorTemp = (result.data >>> 29) & 0x1f;
-        values.motorRPM = (result.data >>> 17) & 0xfff;
+        //values.batteryCurrent = Number( (data >> 45n) & 0x1ffn );
+        //values.batteryCurrentDir = Number( (data >> 44n) & 0x1n );
+        //values.motorCurrent = Number( (data >> 34n) & 0x3ffn );
+        //values.motorTemp = Number( 5n * (data >> 29n) & 0x1fn );
+        values.motorTemp = Number((data >> 29n) & 0x1fn) 
+        console.log(((data >> 17n).toString('2')));
+        values.motorRPM = Number((data >> 17n) & 0xfffn);
+        console.log(values);
     }
     updateGUI(values);
 }
@@ -195,7 +201,9 @@ function connectToServer() {
         // Connection opened
         socket.addEventListener("open", function (event) {
            console.log("Connected to", url);
-           sendCommand("hello");
+           command = {"subscribe": [0x201, 0x325]}
+
+           sendCommand(JSON.stringify(command));
         });
         // Listen for messages
         socket.addEventListener("message", function (event) {
@@ -225,10 +233,10 @@ function disconnectFromServer() {
 
 function sendCommand(command) {
     if (socket == null) {
-    console.log("Not connected to websocket server!");
+        console.log("Not connected to websocket server!");
     } else {
-        socket.send(JSON.stringify({"command": command}));
-    console.log("Sent command", command); 
+        socket.send(command);
+        console.log("Sent command", command); 
     }
 }
 

@@ -8,13 +8,14 @@ use std::env;
 use std::ptr;
 use std::process;
 use std::mem::MaybeUninit;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, Mutex};
 
 use futures::{FutureExt, StreamExt};
 use warp::{Filter, filters::ws};
 
 use serde::{Serialize, Deserialize};
-//use serde_json::{Result, Value};
+use serde_json::Value;
 
 use tokio_socketcan::{CANSocket, CANFrame};
 use tokio_stream::wrappers::UnboundedReceiverStream;
@@ -22,25 +23,39 @@ use tokio::sync::mpsc;
 
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CANMessage {
+struct CANMessage {
     id: String,
     err: String,
     data: String,
 }
 
-fn parse_command(msg: &str) -> serde_json::Value {
-    let v: HashMap<String, serde_json::Value> = serde_json::from_str(msg).unwrap();
+#[derive(Serialize, Deserialize, Debug)]
+struct ClientCommand {
+    subscribe: Vec<u32>
+}
+
+fn parse_command(msg: &str, subscribed_ids: &mut HashSet<u32>) {
+    let v: HashMap<String, Value> = serde_json::from_str(msg).unwrap();
+    //let v = ClientCommand::deserialize(MapDeserializer::new(data.into_iter())).unwrap();
+    //println!("{:#?}", v);
+    if v.contains_key("subscribe") {
+        for i in v["subscribe"].as_array().unwrap() {
+            subscribed_ids.insert(i.as_u64().unwrap() as u32);
+        }
+    }
+    /*
     if v.contains_key("command") {
         match v["command"] {
             _ => {
-                    eprintln!("Received command {}", v["command"]);
-                    v["command"].clone()
+                    eprintln!("Received command {:?}", v["command"]);
+                    v["command"]
                 },
             //_ => eprintln!("Unknown command {}", v["command"]),
         }
     } else {
-        serde_json::json!(null)
+        vec![]//serde_json::json!(null)
     }
+    */
 }
 
 
@@ -50,7 +65,10 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let (to_ws_tx, to_ws_rx) = mpsc::unbounded_channel();
     let to_ws_rx = UnboundedReceiverStream::new(to_ws_rx);
 
-    // Receive websocket messages
+    let subscribed_ids = Arc::new(Mutex::new(HashSet::new()));
+    
+    let sub_ids = Arc::clone(&subscribed_ids);
+    // Thread for receiving incoming websocket messages
     tokio::spawn(async move {
          while let Some(result) = ws_rx.next().await {
             let msg = match result {
@@ -60,13 +78,15 @@ async fn handle_websocket(ws: ws::WebSocket) {
                     break;
                 },
             };
-
-            let _parse_result = parse_command(msg.to_str().expect("Failed to convert message to string"));
+            let mut sub_ids_lock = sub_ids.lock().unwrap();
+            let _parse_result = parse_command(msg.to_str().unwrap(), &mut sub_ids_lock);
+            println!("Subscribed to IDs {:?}", sub_ids_lock);
+            //subscribed_ids.append(parse_result);
             //println!("Command {:?}", parse_result);
         }
     });
 
-    // Forward message over websocket
+    // Thread for forwarding message over websocket
     tokio::spawn(to_ws_rx.forward(ws_tx).map(|result| { 
         if let Err(e) = result {
             eprintln!("websocket error: {:?}", e);
@@ -94,6 +114,8 @@ async fn handle_websocket(ws: ws::WebSocket) {
                 //data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
             };
         }
+        let sub_ids_lock = subscribed_ids.lock().unwrap();
+
         if frame.id() == 0x325 {
             let data = frame.data();
             //pub fn motor_controller_motor_controller_power_status_unpack(dst_p: *mut motor_controller_motor_controller_power_status_t, src_p: *const u8, size: size_t)
