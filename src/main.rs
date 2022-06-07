@@ -36,28 +36,37 @@ struct ClientCommand {
 
 fn parse_command(msg: &str, subscribed_ids: &mut HashSet<u32>) {
     let v: HashMap<String, Value> = serde_json::from_str(msg).unwrap();
-    //let v = ClientCommand::deserialize(MapDeserializer::new(data.into_iter())).unwrap();
-    //println!("{:#?}", v);
     if v.contains_key("subscribe") {
         for i in v["subscribe"].as_array().unwrap() {
             subscribed_ids.insert(i.as_u64().unwrap() as u32);
         }
     }
-    /*
-    if v.contains_key("command") {
-        match v["command"] {
-            _ => {
-                    eprintln!("Received command {:?}", v["command"]);
-                    v["command"]
-                },
-            //_ => eprintln!("Unknown command {}", v["command"]),
-        }
-    } else {
-        vec![]//serde_json::json!(null)
-    }
-    */
 }
 
+fn decode_frame_data(frame: CANFrame) -> String {
+    //let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
+    //eprintln!("frame_to_str: {:?}", frame_to_str);
+    if frame.id() == 0x325 {
+        let data = frame.data();
+        //pub fn motor_controller_motor_controller_power_status_unpack(dst_p: *mut motor_controller_motor_controller_power_status_t, src_p: *const u8, size: size_t)
+
+        let decoded_test_to_str;
+
+        unsafe {
+            let mut decoded_test: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
+            let _unpack = motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded_test), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
+
+            decoded_test_to_str = serde_json::to_string_pretty(&decoded_test).unwrap();
+            //length = decoded_test_to_str.len();
+            //println!("Test {:?}", decoded_test.fet_temperature);
+        }
+        //println!("Test: {:?}", decoded_test_to_str);
+        decoded_test_to_str
+        //safe_copy_decoded
+    } else {
+        "".to_string()
+    }
+}
 
 async fn handle_websocket(ws: ws::WebSocket) {
 
@@ -98,7 +107,9 @@ async fn handle_websocket(ws: ws::WebSocket) {
     let mut socket = CANSocket::open(iface).unwrap();
     println!("Initialized CAN interface {}", iface);
 
+    let sub_ids = Arc::clone(&subscribed_ids);
     while let Some(Ok(frame)) = socket.next().await {
+        /*
         let frame_obj;
         if frame.is_error() {
             frame_obj = CANMessage {
@@ -113,30 +124,19 @@ async fn handle_websocket(ws: ws::WebSocket) {
                 data: format!("0x{}", hex::encode(frame.data())),
                 //data: frame.data().to_vec().iter().map(|x| format!("{:x}", x)).collect::<Vec<String>>(),
             };
-        }
-        let sub_ids_lock = subscribed_ids.lock().unwrap();
-
-        if frame.id() == 0x325 {
-            let data = frame.data();
-            //pub fn motor_controller_motor_controller_power_status_unpack(dst_p: *mut motor_controller_motor_controller_power_status_t, src_p: *const u8, size: size_t)
-
-            //let decoded_test: motor_controller_motor_controller_power_status_t = bincode::deserialize(frame.data()).unwrap();
-            unsafe {
-                let mut decoded_test: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
-                let _unpack = motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded_test), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
-
-                //println!("Test {:?}", decoded_test.fet_temperature);
-                let decoded_test_to_str = serde_json::to_string(&decoded_test).unwrap();
-                println!("Test: {:?}", decoded_test_to_str);
+        }*/
+        let sub_ids_lock = sub_ids.lock().unwrap();
+        if sub_ids_lock.contains(&frame.id()) {
+            let result = decode_frame_data(frame);
+            if result.len() > 0 {
+                println!("{}", result);
+                //let ws_message = ws::Message::text(frame_to_str);
+                let ws_message = ws::Message::text(result);
+                //eprintln!("ws_message: {:?}", ws_message);
+                to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
+                //eprintln!("send_result: {:?}", send_result);
             }
         }
-        
-        let frame_to_str = serde_json::to_string(&frame_obj).unwrap();
-        //eprintln!("frame_to_str: {:?}", frame_to_str);
-        let ws_message = ws::Message::text(frame_to_str);
-        //eprintln!("ws_message: {:?}", ws_message);
-        to_ws_tx.send(Ok(ws_message)).expect("Failed to send message");
-        //eprintln!("send_result: {:?}", send_result);
     }
 }
 

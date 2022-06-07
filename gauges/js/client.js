@@ -138,6 +138,8 @@ function setWebcam(reverseEnable) {
 
 function parseCANMessage(msg) {
     let result = JSON.parse(msg);
+    console.log(result);
+    /*
     //console.log(result);
     // wheel diameter: 460-470mm = ~18.3 inches
     id = parseInt(result.id, 16);
@@ -192,7 +194,7 @@ function parseCANMessage(msg) {
         values.motorRPM = Number((data >> 17n) & 0xfffn);
         console.log(values);
     }
-    updateGUI(values);
+    updateGUI(values);*/
 }
 
 function connectToServer() {
