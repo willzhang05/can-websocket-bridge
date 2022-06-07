@@ -18,9 +18,9 @@ impl ParseCallbacks for CustomCallbacks {
 fn main() {
     println!("hi");
     cc::Build::new()
-        .file("src/generated/rivanna2.c")
-        .file("src/generated/bps.c")
-        .file("src/generated/motor_controller.c")
+        .file("CAN-messages/rivanna2.c")
+        .file("CAN-messages/bps.c")
+        .file("CAN-messages/motor_controller.c")
         .compile("rivanna2");
 
     // Tell cargo to look for shared libraries in the specified directory

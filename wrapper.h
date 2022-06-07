@@ -1,3 +1,3 @@
-#include "src/generated/rivanna2.h"
-#include "src/generated/bps.h"
-#include "src/generated/motor_controller.h"
+#include "CAN-messages/rivanna2.h"
+#include "CAN-messages/bps.h"
+#include "CAN-messages/motor_controller.h"

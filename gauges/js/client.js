@@ -52,46 +52,49 @@ var gauge = new LinearGauge({
 connectToServer();
 
 function updateGUI(toUpdate) {
-    if ("motorRPM" in toUpdate) {
+    if ("motor_rpm" in toUpdate) {
         // 460-470mm wheel diameter
         // ~18.3inches
-        let speed = toUpdate.motorRPM * 18.3 * Math.PI * 60.0 / 63360.0;
+        let speed = toUpdate.motor_rpm * 18.3 * Math.PI * 60.0 / 63360.0;
         document.getElementById("speed").innerHTML = Math.floor(speed);
     }
     if ("throttle" in toUpdate) {
-        //document.getElementById("gauge").setAttribute("data-value", toStrintoUpdate.throttle);
         gauge.update({value: toUpdate.throttle});
     }
-    if ("forwardEnable" in toUpdate && "reverseEnable" in toUpdate) {
+    if ("motor_status" in toUpdate) {
         let gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
         let selectFontSize = "3rem";
         let unselectFontSize = "2rem";
         let selectColor = "#fff";
         let unselectColor = "#757575";
-        if (toUpdate["forwardEnable"] == toUpdate["reverseEnable"]) {
-            gearDisplay.children[0].style.fontSize = unselectFontSize;
-            gearDisplay.children[1].style.fontSize = selectFontSize;
-            gearDisplay.children[2].style.fontSize = unselectFontSize;
-            gearDisplay.children[0].style.color = unselectColor;
-            gearDisplay.children[1].style.color = selectColor;
-            gearDisplay.children[2].style.color = unselectColor;
-        } else {
-            if (toUpdate["forwardEnable"] > 0) {
+        switch(toUpdate.motor_status) {
+            case 2:
+                // forward indicator
                 gearDisplay.children[0].style.fontSize = selectFontSize;
-                gearDisplay.children[1].style.fontSize = unselectFontSize;
-                gearDisplay.children[2].style.fontSize = unselectFontSize;
                 gearDisplay.children[0].style.color = selectColor;
-                gearDisplay.children[1].style.color = unselectColor;
-                gearDisplay.children[2].style.color = unselectColor;
-            } else {
-                gearDisplay.children[0].style.fontSize = unselectFontSize;
                 gearDisplay.children[1].style.fontSize = unselectFontSize;
-                gearDisplay.children[2].style.fontSize = selectFontSize;
-                gearDisplay.children[0].style.color = unselectColor;
                 gearDisplay.children[1].style.color = unselectColor;
+                gearDisplay.children[2].style.fontSize = unselectFontSize;
+                gearDisplay.children[2].style.color = unselectColor;
+                break;
+            case 3:
+                // reverse indicator
+                gearDisplay.children[0].style.fontSize = unselectFontSize;
+                gearDisplay.children[0].style.color = unselectColor;
+                gearDisplay.children[1].style.fontSize = unselectFontSize;
+                gearDisplay.children[1].style.color = unselectColor;
+                gearDisplay.children[2].style.fontSize = selectFontSize;
                 gearDisplay.children[2].style.color = selectColor;
-            }
+                break;
+            default:
+                // neutral indicator
+                gearDisplay.children[0].style.fontSize = unselectFontSize;
+                gearDisplay.children[0].style.color = unselectColor;
+                gearDisplay.children[1].style.fontSize = selectFontSize;
+                gearDisplay.children[1].style.color = selectColor;
+                gearDisplay.children[2].style.fontSize = unselectFontSize;
+                gearDisplay.children[2].style.color = unselectColor;
         }
     }
 }
@@ -101,10 +104,10 @@ function hex2bin(hex){
 }
 
 
-function setWebcam(reverseEnable) {
+function setWebcam(motorStatus) {
     video = document.getElementById("webcam");
     gauges = document.getElementById("gauges");
-    if (reverseEnable == 1) {
+    if (motorStatus == 3) {
         //console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -142,16 +145,14 @@ function parseCANMessage(msg) {
         result.throttle = Math.floor(100 * result.throttle / 256);
         result.regen = Math.floor(100 * result.regen / 256);
     } else if ("power_mode" in result) {
-        console.log(result);
+        //setWebcam(result["motor_status"]);
     } else if ("battery_voltage" in result) {
         result.battery_voltage *= 0.5;
         result.fet_temperature *= 5;
         result.pwm_duty *= 0.5;
         result.lead_angle *= 0.5;
     }
-    // wheel diameter: 460-470mm = ~18.3 inches
-    //setWebcam(values.reverseEnable);
-    //updateGUI(values);
+    updateGUI(result);
 }
 
 function connectToServer() {
