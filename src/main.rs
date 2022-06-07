@@ -33,17 +33,31 @@ fn parse_command(msg: &str, subscribed_ids: &mut HashSet<u32>) {
 
 fn decode_frame_data(frame: CANFrame) -> String {
     let data = frame.data();
-    if frame.id() == 0x325 {
-        //pub fn motor_controller_motor_controller_power_status_unpack(dst_p: *mut motor_controller_motor_controller_power_status_t, src_p: *const u8, size: size_t)
-
-        unsafe {
-            let mut decoded_test: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
-            let _unpack = motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded_test), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
-
-            serde_json::to_string_pretty(&decoded_test).unwrap()
+    match frame.id() {
+        0x201 => {
+            unsafe {
+                let mut decoded: rivanna2_ecu_motor_commands_t = { MaybeUninit::zeroed().assume_init() };
+                rivanna2_ecu_motor_commands_unpack(ptr::addr_of_mut!(decoded), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
+                serde_json::to_string(&decoded).unwrap()
+            }
+        },
+        0x301 => {
+            unsafe {
+                let mut decoded: rivanna2_ecu_power_aux_commands_t = { MaybeUninit::zeroed().assume_init() };
+                rivanna2_ecu_power_aux_commands_unpack(ptr::addr_of_mut!(decoded), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
+                serde_json::to_string(&decoded).unwrap()
+            }
+        },
+        0x325 => {
+            unsafe {
+                let mut decoded: motor_controller_motor_controller_power_status_t = { MaybeUninit::zeroed().assume_init() };
+                motor_controller_motor_controller_power_status_unpack(ptr::addr_of_mut!(decoded), ptr::addr_of!(data[0]), data.len().try_into().unwrap());
+                serde_json::to_string(&decoded).unwrap()
+            }
+        },
+        _ => {
+            String::new()
         }
-    } else {
-        "".to_string()
     }
 }
 

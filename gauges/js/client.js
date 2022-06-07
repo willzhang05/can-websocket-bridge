@@ -203,7 +203,7 @@ function connectToServer() {
         // Connection opened
         socket.addEventListener("open", function (event) {
            console.log("Connected to", url);
-           command = {"subscribe": [0x201, 0x325]}
+           command = {"subscribe": [0x201, 0x301, 0x325]}
 
            sendCommand(JSON.stringify(command));
         });
