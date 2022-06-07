@@ -49,18 +49,67 @@ var gauge = new LinearGauge({
     ticksWidthMinor: 15
 }).draw();
 
-connectToServer();
+var turnSignalToggle = false;
+var turnSignalMode = 0;
+var turnSignalInterval;
+var turnSignals = document.getElementById("turn-signals").children;
+var leftTurnSignal = turnSignals[0];
+var rightTurnSignal = turnSignals[1];
+
+function turnSignalsBlink(mode) {
+    let onTurnSignalColor = "#00ff00";
+    let offTurnSignalColor = "#fff";
+    if (mode != turnSignalMode) {
+        clearInterval(turnSignalInterval);
+        turnSignalInterval = setInterval(function () {
+            console.log(turnSignalToggle);
+            if (turnSignalToggle) {
+                if (turnSignalMode == 1 || turnSignalMode == 2) {
+                    leftTurnSignal.style.color = onTurnSignalColor;
+                    rightTurnSignal.style.color = offTurnSignalColor;
+                }
+                if (turnSignalMode == 1 || turnSignalMode == 3) {
+                    leftTurnSignal.style.color = offTurnSignalColor;
+                    rightTurnSignal.style.color = onTurnSignalColor;
+                }
+            } else {
+                leftTurnSignal.style.color = offTurnSignalColor;
+                rightTurnSignal.style.color = offTurnSignalColor;
+            }
+            turnSignalToggle = !turnSignalToggle;
+        }, 750);
+        turnSignalMode = mode;
+    }
+}
+
 
 function updateGUI(toUpdate) {
+    // 0x201
+    if ("throttle" in toUpdate) {
+        gauge.update({value: toUpdate.throttle});
+    }
+    // 0x301
+    if ("hazards" in toUpdate) {
+
+        if (toUpdate.hazards == 1) {
+            turnSignalsBlink(1);
+        } else if (toUpdate.left_turn_signal == 1) {
+            turnSignalsBlink(2);
+        } else if (toUpdate.right_turn_signal == 1) {
+            turnSignalsBlink(3);
+        } else {
+            turnSignalIntervalMode = 0;
+            clearInterval(turnSignalInterval);
+        }
+    }
+    // 0x325
     if ("motor_rpm" in toUpdate) {
         // 460-470mm wheel diameter
         // ~18.3inches
         let speed = toUpdate.motor_rpm * 18.3 * Math.PI * 60.0 / 63360.0;
         document.getElementById("speed").innerHTML = Math.floor(speed);
     }
-    if ("throttle" in toUpdate) {
-        gauge.update({value: toUpdate.throttle});
-    }
+    // 0x315
     if ("motor_status" in toUpdate) {
         let gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
@@ -200,3 +249,4 @@ function sendCommand(command) {
     }
 }
 
+connectToServer();
