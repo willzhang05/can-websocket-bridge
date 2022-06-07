@@ -138,63 +138,20 @@ function setWebcam(reverseEnable) {
 
 function parseCANMessage(msg) {
     let result = JSON.parse(msg);
-    console.log(result);
-    /*
-    //console.log(result);
-    // wheel diameter: 460-470mm = ~18.3 inches
-    id = parseInt(result.id, 16);
-    let nodeID = id & 0xf;
-    //console.log("Node ID: ", nodeID);
-    let counter = id & 0xf0;
-    //console.log("Counter: ", counter);
-    let messageType = id & 0xf00;
-    let data = BigInt(result.data);
-    //let data = BigInt.asUintN(64, result.data);
-    //console.log("Message Type: ", messageType);
-    let values = {};
-    if (id == 0x201) {
-        //console.log(hex2bin(result.data));
-        //console.log(result.data);
-        var throttle = result.data >>> 23;
-        if (throttle > 256) {
-            throttle = 256;
-        }
-        values.throttle = Math.floor(100 * throttle / 256);
-        //throttle = Math.floor(values.throttle * 100 / 256);
-        //console.log(hex2bin(result.data));
-        var regen = (result.data >>> 14) & 0x1ff;
-        if (regen > 256) {
-            regen = 256;
-        }
-        values.regen = Math.floor(100 * regen / 256);;
-        values.cruiseSpeed = (result.data >>> 6) & 0xff;
-        values.cruiseEnable = (result.data >>> 5) & 0x1;
-        values.forwardEnable = (result.data >>> 4) & 0x1;
-        values.reverseEnable = (result.data >>> 3) & 0x1;
-        values.motorOn = (result.data >>> 2) & 0x1;
-        //setWebcam(values.reverseEnable);
-    } else if (id == 0x301) {
-        //console.log(hex2bin(result.data));
-        values.hazards = (result.data >>> 7) & 0x1;
-        values.brakelights = (result.data >>> 6) & 0x1;
-        values.headlights = (result.data >>> 5) & 0x1;
-        values.left_turn_signal = (result.data >>> 4) & 0x1;
-        values.right_turn_signal = (result.data >>> 3) & 0x1;
-        //console.log(values);
-    } else if (id == 0x325) {
-        console.log(data.toString('2'));
-        //values.batteryVoltage = Number(data & 0xFD00000000000000n);
-        //console.log(values.batteryVoltage);
-        //values.batteryCurrent = Number( (data >> 45n) & 0x1ffn );
-        //values.batteryCurrentDir = Number( (data >> 44n) & 0x1n );
-        //values.motorCurrent = Number( (data >> 34n) & 0x3ffn );
-        //values.motorTemp = Number( 5n * (data >> 29n) & 0x1fn );
-        values.motorTemp = Number((data >> 29n) & 0x1fn) 
-        console.log(((data >> 17n).toString('2')));
-        values.motorRPM = Number((data >> 17n) & 0xfffn);
-        console.log(values);
+    if ("throttle" in result) {
+        result.throttle = Math.floor(100 * result.throttle / 256);
+        result.regen = Math.floor(100 * result.regen / 256);
+    } else if ("power_mode" in result) {
+        console.log(result);
+    } else if ("battery_voltage" in result) {
+        result.battery_voltage *= 0.5;
+        result.fet_temperature *= 5;
+        result.pwm_duty *= 0.5;
+        result.lead_angle *= 0.5;
     }
-    updateGUI(values);*/
+    // wheel diameter: 460-470mm = ~18.3 inches
+    //setWebcam(values.reverseEnable);
+    //updateGUI(values);
 }
 
 function connectToServer() {
@@ -203,7 +160,7 @@ function connectToServer() {
         // Connection opened
         socket.addEventListener("open", function (event) {
            console.log("Connected to", url);
-           command = {"subscribe": [0x201, 0x301, 0x325]}
+           command = {"subscribe": [0x201, 0x301, 0x315, 0x325]}
 
            sendCommand(JSON.stringify(command));
         });
