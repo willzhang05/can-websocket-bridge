@@ -18,11 +18,12 @@
 <body>
     <div id="wrapper">
         <div id="controls">
-            <button onclick="setWebcam(1)">Enable Rearview</button>
+            <button onclick="setWebcam(3)">Enable Rearview</button>
             <button onclick="setWebcam(0)">Disable Rearview</button>
             <!--<button onclick="sendCommand('ping')">Ping</button>-->
             <button onclick="connectToServer()">Connect</button>
             <button onclick="disconnectFromServer()">Disconnect</button>
+            <span id="websocket-status"></span>
         </div>
         <!--<canvas id="gauges"></canvas>-->
         <div id="gauges">
@@ -40,6 +41,11 @@
             <div id="turn-signals">
                 <span>&larr;</span>
                 <span>&rarr;</span>
+            </div>
+            <div id="status">
+                <div class="status-section">Battery Voltage: <span id="battery-voltage">0</span> A</div>
+                <div class="status-section">Motor Current: <span id="motor-current">0</span> A</div>
+                <div class="status-section">Motor Temp: <span id="motor-temp">0</span> &deg;C</div>
             </div>
         </div>
     </div>

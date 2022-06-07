@@ -205,18 +205,30 @@ function parseCANMessage(msg) {
 }
 
 function connectToServer() {
+    let wsStatus = document.getElementById("websocket-status");
     if (socket == null) {
         socket = new WebSocket(url);
         // Connection opened
         socket.addEventListener("open", function (event) {
-           console.log("Connected to", url);
-           command = {"subscribe": [0x201, 0x301, 0x315, 0x325]}
-
-           sendCommand(JSON.stringify(command));
+            console.log("Connected to", url);
+            command = {"subscribe": [0x201, 0x301, 0x315, 0x325]}
+            sendCommand(JSON.stringify(command));
+            wsStatus.innerHTML = "OK";
+            wsStatus.style.color = "#00ff00";
         });
         // Listen for messages
         socket.addEventListener("message", function (event) {
            parseCANMessage(event.data);
+        });
+        socket.addEventListener("error", function (event) {
+            console.log("WebSocket error: ", event);
+            wsStatus.innerHTML = "ERR";
+            wsStatus.style.color = "#ff0000";
+        });
+        socket.addEventListener("close", function (event) {
+            console.log("WebSocket closed: ", event);
+            wsStatus.innerHTML = "ERR";
+            wsStatus.style.color = "#ff0000";
         });
     } else {
         if (socket.url == url) {
@@ -230,6 +242,10 @@ function connectToServer() {
 }
 
 function disconnectFromServer() {
+    let wsStatus = document.getElementById("websocket-status");
+    wsStatus.innerHTML = "ERR";
+    wsStatus.style.color = "#ff0000";
+
     if (socket == null) {
         console.log("Not connected to anything!");
     } else {
@@ -243,9 +259,11 @@ function disconnectFromServer() {
 function sendCommand(command) {
     if (socket == null) {
         console.log("Not connected to websocket server!");
+        return false;
     } else {
         socket.send(command);
         console.log("Sent command", command); 
+        return true;
     }
 }
 

@@ -57,6 +57,7 @@ button {
 }
 
 #info {
+    width: 25rem;
     position: absolute;
     bottom: 2rem;
     left: 2rem;
@@ -64,4 +65,35 @@ button {
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 0.5rem;
     padding: 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#info > div {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#gear {
+    width: 7rem;
+}
+
+#turn-signals {
+    width: 5rem;
+}
+
+#status {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+}
+
+.status-section {
+    font-size: 1rem;
+}
+
+#websocket-status {
+    font-size: 1rem;
 }
