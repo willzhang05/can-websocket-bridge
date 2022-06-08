@@ -15,10 +15,9 @@ var gauge = new LinearGauge({
     ],
     majorTicks: [
         "0",
-        "20",
-        "40",
-        "60",
-        "80",
+        "25",
+        "50",
+        "75",
         "100",
     ],
     minorTicks: 0,
@@ -152,6 +151,10 @@ function updateGUI(toUpdate) {
                 setWebcam(0);
         }
     }
+    // 0x406
+    if ("pack_voltage" in toUpdate) {
+        console.log(toUpdate);
+    }
 }
 
 function hex2bin(hex){
@@ -214,7 +217,7 @@ function connectToServer() {
         // Connection opened
         socket.addEventListener("open", function (event) {
             console.log("Connected to", url);
-            command = {"subscribe": [0x201, 0x301, 0x315, 0x325]}
+            command = {"subscribe": [0x201, 0x301, 0x315, 0x325, 0x406]}
             sendCommand(JSON.stringify(command));
             wsStatus.innerHTML = "OK";
             wsStatus.style.color = "#00ff00";
@@ -267,6 +270,16 @@ function sendCommand(command) {
         console.log("Sent command", command); 
         return true;
     }
+}
+
+var manualWebcamToggle = 0;
+function toggleWebcam() {
+    if (manualWebcamToggle == 0) {
+        manualWebcamToggle = 3;
+    } else {
+        manualWebcamToggle = 0;
+    }
+    setWebcam(manualWebcamToggle);
 }
 
 connectToServer();

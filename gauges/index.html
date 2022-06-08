@@ -18,11 +18,10 @@
 <body>
     <div id="wrapper">
         <div id="controls">
-            <button onclick="setWebcam(3)">Enable Rearview</button>
-            <button onclick="setWebcam(0)">Disable Rearview</button>
+            <button onclick="toggleWebcam()">Toggle Rearview</button>
             <!--<button onclick="sendCommand('ping')">Ping</button>-->
             <button onclick="connectToServer()">Connect</button>
-            <button onclick="disconnectFromServer()">Disconnect</button>
+            <!--<button onclick="disconnectFromServer()">Disconnect</button>-->
             <span id="websocket-status"></span>
         </div>
         <!--<canvas id="gauges"></canvas>-->
