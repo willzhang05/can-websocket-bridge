@@ -103,14 +103,17 @@ function updateGUI(toUpdate) {
         }
     }
     // 0x325
-    if ("motor_rpm" in toUpdate) {
+    if ("battery_voltage" in toUpdate) {
         // 460-470mm wheel diameter
         // ~18.3inches
         let speed = toUpdate.motor_rpm * 18.3 * Math.PI * 60.0 / 63360.0;
         document.getElementById("speed").innerHTML = Math.floor(speed);
+        document.getElementById("battery-voltage").innerHTML = toUpdate.battery_voltage;
+        document.getElementById("motor-current").innerHTML = toUpdate.motor_current;
+        document.getElementById("motor-temp").innerHTML = toUpdate.fet_temperature;
     }
     // 0x315
-    if ("motor_status" in toUpdate) {
+    if ("power_mode" in toUpdate) {
         let gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
         let selectFontSize = "3rem";
