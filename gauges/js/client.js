@@ -106,7 +106,7 @@ function updateGUI(toUpdate) {
     if ("battery_voltage" in toUpdate) {
         // 460-470mm wheel diameter
         // ~18.3inches
-        let speed = toUpdate.motor_rpm * 18.3 * Math.PI * 60.0 / 63360.0;
+        let speed = toUpdate.motor_rpm * 18.8 * Math.PI * 60.0 / 63360.0;
         document.getElementById("speed").innerHTML = Math.floor(speed);
         document.getElementById("battery-voltage").innerHTML = toUpdate.battery_voltage;
         document.getElementById("motor-current").innerHTML = toUpdate.motor_current;
@@ -129,6 +129,7 @@ function updateGUI(toUpdate) {
                 gearDisplay.children[1].style.color = unselectColor;
                 gearDisplay.children[2].style.fontSize = unselectFontSize;
                 gearDisplay.children[2].style.color = unselectColor;
+                setWebcam(0);
                 break;
             case 3:
                 // reverse indicator
@@ -148,6 +149,7 @@ function updateGUI(toUpdate) {
                 gearDisplay.children[1].style.color = selectColor;
                 gearDisplay.children[2].style.fontSize = unselectFontSize;
                 gearDisplay.children[2].style.color = unselectColor;
+                setWebcam(0);
         }
     }
 }
