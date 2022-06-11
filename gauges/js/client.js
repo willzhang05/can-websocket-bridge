@@ -116,8 +116,8 @@ function updateGUI(toUpdate) {
     if ("power_mode" in toUpdate) {
         let gearDisplay = document.getElementById("gear");
         //console.log(gearDisplay.children[0]);
-        let selectFontSize = "3rem";
-        let unselectFontSize = "2rem";
+        let selectFontSize = "4rem";
+        let unselectFontSize = "3rem";
         let selectColor = "#fff";
         let unselectColor = "#757575";
         switch(toUpdate.motor_status) {
@@ -138,6 +138,7 @@ function updateGUI(toUpdate) {
                 gearDisplay.children[1].style.color = unselectColor;
                 gearDisplay.children[2].style.fontSize = selectFontSize;
                 gearDisplay.children[2].style.color = selectColor;
+                setWebcam(3);
                 break;
             default:
                 // neutral indicator
