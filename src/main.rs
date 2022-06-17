@@ -33,6 +33,16 @@ fn parse_command(msg: &str, subscribed_ids: &mut HashSet<u32>) {
 fn decode_frame_data(frame: CANFrame) -> String {
     let data = frame.data();
     match frame.id() {
+        0x106 => unsafe {
+            let mut decoded: bps_bps_error_t =
+                { MaybeUninit::zeroed().assume_init() };
+            bps_bps_error_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
         0x201 => unsafe {
             let mut decoded: rivanna2_ecu_motor_commands_t =
                 { MaybeUninit::zeroed().assume_init() };
@@ -67,6 +77,56 @@ fn decode_frame_data(frame: CANFrame) -> String {
             let mut decoded: motor_controller_motor_controller_power_status_t =
                 { MaybeUninit::zeroed().assume_init() };
             motor_controller_motor_controller_power_status_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x406 => unsafe {
+            let mut decoded: bps_bps_pack_information_t =
+                { MaybeUninit::zeroed().assume_init() };
+            bps_bps_pack_information_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x416 => unsafe {
+            let mut decoded: bps_bps_cell_voltage_t =
+                { MaybeUninit::zeroed().assume_init() };
+            bps_bps_cell_voltage_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x426 => unsafe {
+            let mut decoded: bps_bps_cell_temperature_t =
+                { MaybeUninit::zeroed().assume_init() };
+            bps_bps_cell_temperature_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x434 => unsafe {
+            let mut decoded: rivanna2_solar_current_t =
+                { MaybeUninit::zeroed().assume_init() };
+            rivanna2_solar_current_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x444 => unsafe {
+            let mut decoded: rivanna2_solar_voltage_t =
+                { MaybeUninit::zeroed().assume_init() };
+            rivanna2_solar_voltage_unpack(
                 ptr::addr_of_mut!(decoded),
                 ptr::addr_of!(data[0]),
                 data.len().try_into().unwrap(),
