@@ -135,7 +135,8 @@ async fn handle_websocket(ws: ws::WebSocket) {
 async fn main() {
     //pretty_env_logger::init();
     if env::args().len() <= 1 {
-        eprintln!("Not enough arguments");
+        eprintln!("Not enough arguments.");
+        eprintln!("Usage: ./can-websocket-bridge <interface>");
         process::exit(1);
     }
 
