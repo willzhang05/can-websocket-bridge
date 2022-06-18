@@ -158,12 +158,10 @@ function hex2bin(hex){
     return (parseInt(hex, 16).toString(2)).padStart(8, '0');
 }
 
-
 function setWebcam(motorStatus) {
     video = document.getElementById("webcam");
     gauges = document.getElementById("gauges");
     if (motorStatus == 3) {
-        //console.log(video.getAttribute("hidden"));
         if (video.getAttribute("hidden") != null) {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 console.log("enabling webcam");
@@ -185,7 +183,6 @@ function setWebcam(motorStatus) {
             }
         }
     } else {
-        //console.log("disabling webcam");
         if (video.getAttribute("hidden") == null) {
             video.setAttribute("hidden", "true");
             gauges.style.display = "flex";
@@ -251,9 +248,8 @@ function disconnectFromServer() {
     let wsStatus = document.getElementById("websocket-status");
     wsStatus.innerHTML = "ERR";
     wsStatus.style.color = "#ff0000";
-
     if (socket == null) {
-        console.log("Not connected to anything!");
+        console.log("Not connected!");
     } else {
         socket.close();
         socket = null;

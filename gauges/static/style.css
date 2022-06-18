@@ -41,6 +41,8 @@ button {
 #webcam {
     height: 100vh;
     border-radius: 0.5rem;
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
 }
 
 #gauges {
