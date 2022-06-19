@@ -41,6 +41,15 @@ pub fn decode_frame_data(frame: CANFrame) -> String {
             );
             serde_json::to_string(&decoded).unwrap()
         },
+        0x123 => unsafe {
+            let mut decoded: rivanna2_power_aux_error_t = { MaybeUninit::zeroed().assume_init() };
+            rivanna2_power_aux_error_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
         0x201 => unsafe {
             let mut decoded: rivanna2_ecu_motor_commands_t =
                 { MaybeUninit::zeroed().assume_init() };
@@ -120,6 +129,24 @@ pub fn decode_frame_data(frame: CANFrame) -> String {
         0x444 => unsafe {
             let mut decoded: rivanna2_solar_voltage_t = { MaybeUninit::zeroed().assume_init() };
             rivanna2_solar_voltage_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x454 => unsafe {
+            let mut decoded: rivanna2_solar_temp_t = { MaybeUninit::zeroed().assume_init() };
+            rivanna2_solar_temp_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x464 => unsafe {
+            let mut decoded: rivanna2_solar_photo_t = { MaybeUninit::zeroed().assume_init() };
+            rivanna2_solar_photo_unpack(
                 ptr::addr_of_mut!(decoded),
                 ptr::addr_of!(data[0]),
                 data.len().try_into().unwrap(),
