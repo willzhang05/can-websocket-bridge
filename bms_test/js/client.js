@@ -24,7 +24,6 @@ function updateGUI() {
 
 function parseCANMessage(msg) {
 	var result = JSON.parse(msg);
-	//console.log(result);
 	id = parseInt(result.id, 16);
 
 	if (id & 0x1) {
@@ -43,19 +42,16 @@ function parseCANMessage(msg) {
 				packStats["current"] = ~packStats["current"] + 1;
 			}
 			packStats["current"] *= 0.01
-
 			if (data[1] & 0b10000000) {
 				packStats["max_temp"] = ~data[1] + 1;
 			} else {
 				packStats["max_temp"] = data[1];
 			}
-
 			if (data[0] & 0b10000000) {
 				packStats["avg_temp"] = ~data[0] + 1;
 			} else {
 				packStats["avg_temp"] = data[0];
 			}
-			//console.log(packStats);
 			updateGUI();
 		}
 	}
@@ -75,13 +71,13 @@ function connectToServer() {
 	   parseCANMessage(event.data);
         });
     } else {
-	if (socket.url == url) {
-	    if (socket.readyState == WebSocket.CONNECTING) {
-	        console.log("Already connecting!");
-	    } else if (socket.readyState == WebSocket.OPEN) {
-	        console.log("Already connected!");
-	    }
-	}
+        if (socket.url == url) {
+            if (socket.readyState == WebSocket.CONNECTING) {
+                console.log("Already connecting!");
+            } else if (socket.readyState == WebSocket.OPEN) {
+                console.log("Already connected!");
+            }
+        }
     }
 }
 
@@ -95,7 +91,6 @@ function disconnectFromServer() {
     }
 }
 
-
 function sendCommand(command) {
     if (socket == null) {
     console.log("Not connected to websocket server!");
@@ -104,4 +99,3 @@ function sendCommand(command) {
     console.log("Sent command", command); 
     }
 }
-
