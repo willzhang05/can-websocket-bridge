@@ -1,8 +1,8 @@
 use std::env;
 use std::process;
 
-use warp::Filter;
 use can_websocket_bridge::handle_websocket;
+use warp::Filter;
 
 #[tokio::main]
 async fn main() {

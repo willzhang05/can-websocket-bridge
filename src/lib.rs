@@ -176,8 +176,13 @@ pub async fn handle_websocket(ws: ws::WebSocket) {
                 }
             };
             let mut sub_ids_lock = sub_ids.lock().unwrap();
-            let _parse_result = parse_command(msg.to_str().unwrap(), &mut sub_ids_lock);
-            println!("Subscribed to IDs {:?}", sub_ids_lock);
+            if msg.is_close() {
+                eprintln!("websocket closed!");
+                break;
+            } else {
+                let _parse_result = parse_command(msg.to_str().unwrap(), &mut sub_ids_lock);
+                println!("Subscribed to IDs {:?}", sub_ids_lock);
+            }
         }
     });
 
@@ -202,10 +207,14 @@ pub async fn handle_websocket(ws: ws::WebSocket) {
                 //println!("{}", result);
                 let ws_message = ws::Message::text(result);
                 //eprintln!("ws_message: {:?}", ws_message);
-                to_ws_tx
-                    .send(Ok(ws_message))
-                    .expect("Failed to send message");
-                //eprintln!("send_result: {:?}", send_result);
+                //let send_result = to_ws_tx.send(Ok(ws_message));
+                let _send_result = match to_ws_tx.send(Ok(ws_message)) {
+                    Ok(_send_result) => _send_result,
+                    Err(e) => {
+                        eprintln!("Could not send message: {:?}", e);
+                        break;
+                    }
+                };
             }
         }
     }
