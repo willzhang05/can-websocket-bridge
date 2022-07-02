@@ -3,4 +3,4 @@
 	url = https://github.com/solarcaratuva/CAN-messages.git
 [submodule "gauges"]
 	path = gauges
-	url = git@github.com:solarcaratuva/gauge-cluster.git
+	url = https://github.com:solarcaratuva/gauge-cluster.git
