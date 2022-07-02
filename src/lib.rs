@@ -153,6 +153,24 @@ pub fn decode_frame_data(frame: CANFrame) -> String {
             );
             serde_json::to_string(&decoded).unwrap()
         },
+        0x180 => unsafe {
+            let mut decoded: mppt_mg0_status_t = { MaybeUninit::zeroed().assume_init() };
+            mppt_mg0_status_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
+        0x181 => unsafe {
+            let mut decoded: mppt_mg1_status_t = { MaybeUninit::zeroed().assume_init() };
+            mppt_mg1_status_unpack(
+                ptr::addr_of_mut!(decoded),
+                ptr::addr_of!(data[0]),
+                data.len().try_into().unwrap(),
+            );
+            serde_json::to_string(&decoded).unwrap()
+        },
         _ => String::new(),
     }
 }

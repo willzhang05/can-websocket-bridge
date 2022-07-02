@@ -21,6 +21,7 @@ fn main() {
         .file("CAN-messages/rivanna2.c")
         .file("CAN-messages/bps.c")
         .file("CAN-messages/motor_controller.c")
+        .file("CAN-messages/mppt.c")
         .compile("rivanna2");
 
     // Tell cargo to look for shared libraries in the specified directory
